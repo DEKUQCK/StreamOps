@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuroraBackground } from "@/components/aurora-background";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,7 +36,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <AuroraBackground />
+
       <header className="flex items-center justify-between px-6 py-5 sm:px-10">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           Stream<span className="text-primary">Ops</span>
