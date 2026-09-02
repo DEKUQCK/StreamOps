@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --border: #e4e4e7;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --primary-hover: #6d28d9;
+  --success: #16a34a;
+  --success-bg: #f0fdf4;
+  --success-foreground: #ffffff;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --danger-foreground: #ffffff;
+  --warning-foreground: #b45309;
+  --ring: #7c3aed;
+}
+
+.dark {
+  --background: #0c0a10;
+  --foreground: #f4f4f5;
+  --card: #18161d;
+  --card-foreground: #f4f4f5;
+  --border: #2b2831;
+  --muted: #211f27;
+  --muted-foreground: #a1a1aa;
+  --primary: #a78bfa;
+  --primary-foreground: #18101f;
+  --primary-hover: #c4b5fd;
+  --success: #4ade80;
+  --success-bg: rgba(74, 222, 128, 0.12);
+  --success-foreground: #052e14;
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  --danger-foreground: #450a0a;
+  --warning-foreground: #fbbf24;
+  --ring: #a78bfa;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-foreground: var(--success-foreground);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-ring/30;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 border border-border bg-transparent text-foreground hover:bg-muted;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 bg-success text-success-foreground hover:opacity-90;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 bg-danger-bg text-danger hover:opacity-80;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground;
+  }
+
+  .label-xs {
+    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
 }

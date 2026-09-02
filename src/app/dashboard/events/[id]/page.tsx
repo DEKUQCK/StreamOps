@@ -38,7 +38,7 @@ export default async function EventDetailPage({
     .single();
 
   if (!event) {
-    return <p className="text-sm text-red-600">Event nicht gefunden.</p>;
+    return <p className="text-sm text-danger">Event nicht gefunden.</p>;
   }
 
   const [{ data: roster }, { data: eventParticipants }, { data: checklistItems }] =
@@ -76,8 +76,8 @@ export default async function EventDetailPage({
   return (
     <div className="flex flex-col gap-10">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">{event.name}</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           {event.starts_at
             ? new Date(event.starts_at).toLocaleString("de-DE")
             : "Termin offen"}
@@ -88,13 +88,11 @@ export default async function EventDetailPage({
 
       {/* Kalender & Slot-Buchung */}
       <section>
-        <h2 className="text-lg font-semibold text-zinc-900">
-          Teilnehmer &amp; Slots
-        </h2>
+        <h2 className="text-lg font-semibold">Teilnehmer &amp; Slots</h2>
         <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="md:col-span-2 flex flex-col gap-4">
             {!eventParticipants || eventParticipants.length === 0 ? (
-              <p className="rounded-md border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500">
+              <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
                 Noch niemand eingeladen.
               </p>
             ) : (
@@ -105,16 +103,11 @@ export default async function EventDetailPage({
                 const portalUrl = `/portal/${ep.magic_link_token}`;
                 const addAsset = addEventAsset.bind(null, eventId, ep.id);
                 return (
-                  <div
-                    key={ep.id}
-                    className="rounded-md border border-zinc-200 bg-white p-4"
-                  >
+                  <div key={ep.id} className="card p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-zinc-900">
-                          {participant.display_name}
-                        </p>
-                        <p className="text-xs text-zinc-500">
+                        <p className="font-medium">{participant.display_name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {ep.slot_starts_at
                             ? new Date(ep.slot_starts_at).toLocaleString(
                                 "de-DE",
@@ -122,31 +115,29 @@ export default async function EventDetailPage({
                             : "Kein Slot gesetzt"}
                         </p>
                       </div>
-                      <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">
+                      <span className="badge">
                         {RSVP_LABELS[ep.rsvp_status] ?? ep.rsvp_status}
                       </span>
                     </div>
 
-                    <p className="mt-2 break-all text-xs text-zinc-400">
+                    <p className="mt-2 break-all text-xs text-muted-foreground">
                       Info-Hub-Link: {portalUrl}
                     </p>
 
                     {/* Asset-Tresor */}
-                    <div className="mt-3 border-t border-zinc-100 pt-3">
-                      <p className="text-xs font-semibold uppercase text-zinc-500">
-                        Asset-Tresor
-                      </p>
+                    <div className="mt-3 border-t border-border pt-3">
+                      <p className="label-xs">Asset-Tresor</p>
                       <ul className="mt-2 flex flex-col gap-1">
                         {ep.event_assets.map((asset) => (
-                          <li key={asset.id} className="text-sm text-zinc-700">
-                            <span className="text-zinc-400">
+                          <li key={asset.id} className="text-sm">
+                            <span className="text-muted-foreground">
                               {ASSET_TYPE_LABELS[asset.asset_type] ??
                                 asset.asset_type}
                               :
                             </span>{" "}
                             {asset.label}
                             {asset.is_sensitive && (
-                              <span className="ml-1 text-xs text-amber-600">
+                              <span className="ml-1 text-xs text-warning-foreground">
                                 (sensibel)
                               </span>
                             )}
@@ -160,7 +151,7 @@ export default async function EventDetailPage({
                       >
                         <select
                           name="asset_type"
-                          className="rounded-md border border-zinc-300 px-2 py-1 text-xs"
+                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
                         >
                           {Object.entries(ASSET_TYPE_LABELS).map(
                             ([value, label]) => (
@@ -174,22 +165,19 @@ export default async function EventDetailPage({
                           name="label"
                           required
                           placeholder="Beschriftung"
-                          className="w-32 rounded-md border border-zinc-300 px-2 py-1 text-xs"
+                          className="w-32 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-primary"
                         />
                         <input
                           name="value"
                           required
                           placeholder="Wert"
-                          className="w-40 rounded-md border border-zinc-300 px-2 py-1 text-xs"
+                          className="w-40 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-primary"
                         />
-                        <label className="flex items-center gap-1 text-xs text-zinc-500">
+                        <label className="flex items-center gap-1 text-xs text-muted-foreground">
                           <input type="checkbox" name="is_sensitive" />
                           sensibel
                         </label>
-                        <button
-                          type="submit"
-                          className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
-                        >
+                        <button type="submit" className="btn-primary px-3 py-1 text-xs">
                           Hinzufügen
                         </button>
                       </form>
@@ -200,47 +188,38 @@ export default async function EventDetailPage({
             )}
           </div>
 
-          <div className="rounded-md border border-zinc-200 bg-white p-4">
-            <h3 className="text-sm font-semibold text-zinc-900">
-              Streamer einladen
-            </h3>
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold">Streamer einladen</h3>
             {availableRoster.length === 0 ? (
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Alle Roster-Streamer sind bereits eingeladen.
               </p>
             ) : (
               <form action={inviteToEvent} className="mt-3 flex flex-col gap-2">
-                <select
-                  name="participant_id"
-                  required
-                  className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                >
+                <select name="participant_id" required className="input">
                   {availableRoster.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.display_name}
                     </option>
                   ))}
                 </select>
-                <label className="text-xs text-zinc-500">
+                <label className="label-xs">
                   Slot-Start
                   <input
                     type="datetime-local"
                     name="slot_starts_at"
-                    className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    className="input mt-1"
                   />
                 </label>
-                <label className="text-xs text-zinc-500">
+                <label className="label-xs">
                   Slot-Ende
                   <input
                     type="datetime-local"
                     name="slot_ends_at"
-                    className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    className="input mt-1"
                   />
                 </label>
-                <button
-                  type="submit"
-                  className="mt-1 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-                >
+                <button type="submit" className="btn-primary mt-1">
                   Einladen
                 </button>
               </form>
@@ -251,23 +230,23 @@ export default async function EventDetailPage({
 
       {/* Sponsoren-Checklisten */}
       <section>
-        <h2 className="text-lg font-semibold text-zinc-900">
-          Sponsoren-Checkliste
-        </h2>
+        <h2 className="text-lg font-semibold">Sponsoren-Checkliste</h2>
         <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 overflow-x-auto">
+          <div className="card md:col-span-2 overflow-x-auto p-4">
             {!checklistItems || checklistItems.length === 0 ? (
-              <p className="rounded-md border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500">
+              <p className="py-6 text-center text-sm text-muted-foreground">
                 Noch keine Sponsoren-Vorgaben.
               </p>
             ) : (
               <table className="w-full min-w-[420px] text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase text-zinc-500">
-                    <th className="pb-2">Sponsor</th>
-                    <th className="pb-2">Vorgabe</th>
-                    <th className="pb-2">Fällig</th>
-                    <th className="pb-2">Erledigt von</th>
+                  <tr className="text-left">
+                    <th className="label-xs pb-2 font-semibold">Sponsor</th>
+                    <th className="label-xs pb-2 font-semibold">Vorgabe</th>
+                    <th className="label-xs pb-2 font-semibold">Fällig</th>
+                    <th className="label-xs pb-2 font-semibold">
+                      Erledigt von
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -284,19 +263,19 @@ export default async function EventDetailPage({
                       (s) => s.completed_at,
                     ).length;
                     return (
-                      <tr key={item.id} className="border-t border-zinc-100">
-                        <td className="py-2 font-medium text-zinc-900">
+                      <tr key={item.id} className="border-t border-border">
+                        <td className="py-2 font-medium">
                           {item.sponsor_name}
                         </td>
-                        <td className="py-2 text-zinc-700">
+                        <td className="py-2 text-muted-foreground">
                           {item.description}
                         </td>
-                        <td className="py-2 text-zinc-500">
+                        <td className="py-2 text-muted-foreground">
                           {item.due_at
                             ? new Date(item.due_at).toLocaleString("de-DE")
                             : "–"}
                         </td>
-                        <td className="py-2 text-zinc-500">
+                        <td className="py-2 text-muted-foreground">
                           {completedCount} / {eventParticipants?.length ?? 0}
                         </td>
                       </tr>
@@ -307,35 +286,26 @@ export default async function EventDetailPage({
             )}
           </div>
 
-          <div className="rounded-md border border-zinc-200 bg-white p-4">
-            <h3 className="text-sm font-semibold text-zinc-900">
-              Vorgabe hinzufügen
-            </h3>
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold">Vorgabe hinzufügen</h3>
             <form action={addChecklistItem} className="mt-3 flex flex-col gap-2">
               <input
                 name="sponsor_name"
                 required
                 placeholder="Sponsor"
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="input"
               />
               <input
                 name="description"
                 required
                 placeholder="z. B. !sponsor Command um 20 Uhr"
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="input"
               />
-              <label className="text-xs text-zinc-500">
+              <label className="label-xs">
                 Fällig am
-                <input
-                  type="datetime-local"
-                  name="due_at"
-                  className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                />
+                <input type="datetime-local" name="due_at" className="input mt-1" />
               </label>
-              <button
-                type="submit"
-                className="mt-1 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-              >
+              <button type="submit" className="btn-primary mt-1">
                 Hinzufügen
               </button>
             </form>

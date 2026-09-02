@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -33,42 +35,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-24">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold text-zinc-900">
-          Veranstalter-Login
-        </h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Wir schicken dir einen Anmelde-Link per E-Mail.
-        </p>
+    <div className="flex flex-1 flex-col">
+      <header className="flex items-center justify-between px-6 py-5 sm:px-10">
+        <Link href="/" className="text-lg font-semibold tracking-tight">
+          Stream<span className="text-primary">Ops</span>
+        </Link>
+        <ThemeToggle />
+      </header>
 
-        {status === "sent" ? (
-          <p className="mt-6 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800">
-            Link verschickt an <strong>{email}</strong>. Öffne dein
-            Postfach und klicke auf den Link, um dich anzumelden.
+      <div className="flex flex-1 flex-col items-center justify-center px-6 pb-24">
+        <div className="card w-full max-w-sm p-6">
+          <h1 className="text-xl font-semibold">Veranstalter-Login</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Wir schicken dir einen Anmelde-Link per E-Mail, kein Passwort
+            nötig.
           </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-            <input
-              type="email"
-              required
-              placeholder="du@agentur.de"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={status === "sending"}
-              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-60"
-            >
-              {status === "sending" ? "Wird gesendet…" : "Anmelde-Link senden"}
-            </button>
-            {status === "error" && (
-              <p className="text-sm text-red-600">{errorMessage}</p>
-            )}
-          </form>
-        )}
+
+          {status === "sent" ? (
+            <p className="mt-6 rounded-lg bg-success-bg px-4 py-3 text-sm text-success">
+              Link verschickt an <strong>{email}</strong>. Öffne dein
+              Postfach und klicke auf den Link, um dich anzumelden.
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+              <input
+                type="email"
+                required
+                placeholder="du@agentur.de"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="input"
+              />
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="btn-primary"
+              >
+                {status === "sending" ? "Wird gesendet…" : "Anmelde-Link senden"}
+              </button>
+              {status === "error" && (
+                <p className="text-sm text-danger">{errorMessage}</p>
+              )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

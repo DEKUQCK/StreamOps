@@ -26,27 +26,28 @@ export default async function RosterPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold text-zinc-900">Streamer-Roster</h1>
-      <p className="-mt-6 text-sm text-zinc-500">
-        Eure wiederverwendbare Liste an Creators, die ihr zu Events einladen
-        könnt.
-      </p>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Streamer-Roster
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Eure wiederverwendbare Liste an Creators, die ihr zu Events
+          einladen könnt.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
           {!participants || participants.length === 0 ? (
-            <p className="rounded-md border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500">
+            <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
               Noch keine Streamer im Roster.
             </p>
           ) : (
             <ul className="flex flex-col gap-3">
               {participants.map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-md border border-zinc-200 bg-white px-4 py-3"
-                >
-                  <p className="font-medium text-zinc-900">{p.display_name}</p>
-                  <p className="text-xs text-zinc-500">
+                <li key={p.id} className="card px-4 py-3.5">
+                  <p className="font-medium">{p.display_name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {[p.twitch_username && `Twitch: ${p.twitch_username}`, p.email]
                       .filter(Boolean)
                       .join(" · ")}
@@ -57,10 +58,8 @@ export default async function RosterPage() {
           )}
         </div>
 
-        <div className="rounded-md border border-zinc-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-zinc-900">
-            Streamer hinzufügen
-          </h2>
+        <div className="card p-4">
+          <h2 className="text-sm font-semibold">Streamer hinzufügen</h2>
           <form
             action={addParticipantWithOrg}
             className="mt-3 flex flex-col gap-2"
@@ -69,28 +68,25 @@ export default async function RosterPage() {
               name="display_name"
               required
               placeholder="Anzeigename"
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              className="input"
             />
             <input
               name="twitch_username"
               placeholder="Twitch-Username"
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              className="input"
             />
             <input
               name="email"
               type="email"
               placeholder="E-Mail"
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              className="input"
             />
             <input
               name="discord_user_id"
               placeholder="Discord-User-ID"
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              className="input"
             />
-            <button
-              type="submit"
-              className="mt-1 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-            >
+            <button type="submit" className="btn-primary mt-1">
               Hinzufügen
             </button>
           </form>

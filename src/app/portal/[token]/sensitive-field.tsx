@@ -36,12 +36,12 @@ export function SensitiveField({ label, value }: { label: string; value: string 
   }, [revealed]);
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md bg-zinc-100 px-3 py-2">
-      <span className="text-xs font-medium text-zinc-500">{label}</span>
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-muted px-3 py-2.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
       {revealed ? (
         <button
           onClick={hide}
-          className="rounded bg-white px-2 py-1 font-mono text-sm text-zinc-900 shadow-sm"
+          className="rounded-md bg-card px-2.5 py-1 font-mono text-sm shadow-sm"
           title="Klicken zum Verbergen"
         >
           {value}
@@ -49,7 +49,7 @@ export function SensitiveField({ label, value }: { label: string; value: string 
       ) : (
         <button
           onClick={reveal}
-          className="rounded border border-zinc-300 bg-zinc-200 px-3 py-1 text-xs text-zinc-500 hover:bg-zinc-300"
+          className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-card"
         >
           •••• anzeigen
         </button>
