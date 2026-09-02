@@ -37,7 +37,12 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-[-15%] h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-primary/8 blur-[120px] dark:bg-primary/25" />
+        <div className="absolute right-[-10%] top-[20%] h-[350px] w-[350px] rounded-full bg-primary/5 blur-[100px] dark:bg-primary/15" />
+      </div>
+
       <header className="flex items-center justify-between px-6 py-5 sm:px-10">
         <span className="text-lg font-semibold tracking-tight">
           Stream<span className="text-primary">Ops</span>
