@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { requireOrganizationId } from "@/utils/require-organization";
 import { addParticipantToRoster, deleteParticipant, updateParticipant } from "../actions";
 import { RosterRow } from "./roster-row";
 
@@ -8,14 +9,7 @@ export default async function RosterPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .eq("user_id", user!.id)
-    .limit(1)
-    .single();
-
-  const organizationId = membership!.organization_id;
+  const organizationId = await requireOrganizationId(supabase, user!.id);
 
   const { data: participants } = await supabase
     .from("participants")

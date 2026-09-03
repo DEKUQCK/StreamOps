@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import { requireOrganizationId } from "@/utils/require-organization";
 import { createEvent } from "./actions";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -16,17 +17,13 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id, organizations(name)")
-    .eq("user_id", user!.id)
-    .limit(1)
-    .single();
-
-  const organizationId = membership!.organization_id;
-  const organizationName = (
-    membership as unknown as { organizations: { name: string } }
-  ).organizations.name;
+  const organizationId = await requireOrganizationId(supabase, user!.id);
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("name")
+    .eq("id", organizationId)
+    .limit(1);
+  const organizationName = organization?.[0]?.name ?? "";
 
   const { data: events } = await supabase
     .from("events")

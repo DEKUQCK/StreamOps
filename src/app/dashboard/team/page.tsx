@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { requireOrganizationId } from "@/utils/require-organization";
 import { cancelInvite, inviteTeamMember, removeTeamMember } from "../actions";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
@@ -20,14 +21,7 @@ export default async function TeamPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .eq("user_id", user!.id)
-    .limit(1)
-    .single();
-
-  const organizationId = membership!.organization_id;
+  const organizationId = await requireOrganizationId(supabase, user!.id);
 
   const [{ data: membersData }, { data: invites }] = await Promise.all([
     supabase.rpc("get_organization_members", {

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { requireOrganizationId } from "@/utils/require-organization";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import type { CalendarEvent } from "@/components/calendar/types";
 
@@ -8,14 +9,7 @@ export default async function DashboardCalendarPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .eq("user_id", user!.id)
-    .limit(1)
-    .single();
-
-  const organizationId = membership!.organization_id;
+  const organizationId = await requireOrganizationId(supabase, user!.id);
 
   const { data: events } = await supabase
     .from("events")
