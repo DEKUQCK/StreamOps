@@ -81,6 +81,12 @@ export default async function DashboardLayout({
             >
               Streamer-Roster
             </Link>
+            <Link
+              href="/dashboard/calendar"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Kalender
+            </Link>
             <span className="hidden text-muted-foreground sm:inline">
               {user.email}
             </span>

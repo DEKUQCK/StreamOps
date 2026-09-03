@@ -18,7 +18,7 @@ export default async function RosterPage() {
 
   const { data: participants } = await supabase
     .from("participants")
-    .select("id, display_name, email, twitch_username, discord_user_id")
+    .select("id, display_name, email, twitch_username, discord_user_id, portal_token")
     .eq("organization_id", organizationId)
     .order("display_name");
 
@@ -51,6 +51,9 @@ export default async function RosterPage() {
                     {[p.twitch_username && `Twitch: ${p.twitch_username}`, p.email]
                       .filter(Boolean)
                       .join(" · ")}
+                  </p>
+                  <p className="mt-1.5 break-all text-xs text-muted-foreground">
+                    Kalender-Link: /my-events/{p.portal_token}
                   </p>
                 </li>
               ))}

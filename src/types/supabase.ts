@@ -232,6 +232,7 @@ export type Database = {
           email: string | null
           id: number
           organization_id: number
+          portal_token: string
           twitch_username: string | null
         }
         Insert: {
@@ -241,6 +242,7 @@ export type Database = {
           email?: string | null
           id?: never
           organization_id: number
+          portal_token?: string
           twitch_username?: string | null
         }
         Update: {
@@ -250,6 +252,7 @@ export type Database = {
           email?: string | null
           id?: never
           organization_id?: number
+          portal_token?: string
           twitch_username?: string | null
         }
         Relationships: [
@@ -258,6 +261,45 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reminder_log: {
+        Row: {
+          checklist_item_id: number | null
+          event_participant_id: number
+          id: number
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          checklist_item_id?: number | null
+          event_participant_id: number
+          id?: never
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          checklist_item_id?: number | null
+          event_participant_id?: number
+          id?: never
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_log_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_log_event_participant_id_fkey"
+            columns: ["event_participant_id"]
+            isOneToOne: false
+            referencedRelation: "event_participants"
             referencedColumns: ["id"]
           },
         ]
@@ -302,11 +344,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bot_get_pending_reminders: { Args: { p_secret: string }; Returns: Json }
+      bot_mark_reminder_sent: {
+        Args: {
+          p_checklist_item_id?: number
+          p_event_participant_id: number
+          p_reminder_type: string
+          p_secret: string
+        }
+        Returns: boolean
+      }
       complete_checklist_item: {
         Args: { p_checklist_item_id: number; p_token: string }
         Returns: boolean
       }
       create_organization: { Args: { p_name: string }; Returns: number }
+      get_participant_calendar: { Args: { p_token: string }; Returns: Json }
       get_participant_portal: { Args: { p_token: string }; Returns: Json }
       set_rsvp_status: {
         Args: { p_status: string; p_token: string }
