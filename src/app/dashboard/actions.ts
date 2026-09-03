@@ -41,6 +41,33 @@ export async function createEvent(organizationId: number, formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function updateEvent(eventId: number, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const startsAt = String(formData.get("starts_at") ?? "") || null;
+  const endsAt = String(formData.get("ends_at") ?? "") || null;
+  const status = String(formData.get("status") ?? "draft");
+  if (!name) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("events")
+    .update({ name, starts_at: startsAt, ends_at: endsAt, status })
+    .eq("id", eventId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+  revalidatePath("/dashboard");
+}
+
+export async function deleteEvent(eventId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").delete().eq("id", eventId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
 export async function addParticipantToRoster(
   organizationId: number,
   formData: FormData,
@@ -64,6 +91,39 @@ export async function addParticipantToRoster(
   revalidatePath("/dashboard/roster");
 }
 
+export async function updateParticipant(participantId: number, formData: FormData) {
+  const displayName = String(formData.get("display_name") ?? "").trim();
+  const email = String(formData.get("email") ?? "") || null;
+  const twitchUsername = String(formData.get("twitch_username") ?? "") || null;
+  const discordUserId = String(formData.get("discord_user_id") ?? "") || null;
+  if (!displayName) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("participants")
+    .update({
+      display_name: displayName,
+      email,
+      twitch_username: twitchUsername,
+      discord_user_id: discordUserId,
+    })
+    .eq("id", participantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/roster");
+}
+
+export async function deleteParticipant(participantId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("participants")
+    .delete()
+    .eq("id", participantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/roster");
+}
+
 export async function inviteParticipantToEvent(
   eventId: number,
   formData: FormData,
@@ -80,6 +140,38 @@ export async function inviteParticipantToEvent(
     slot_starts_at: slotStartsAt,
     slot_ends_at: slotEndsAt,
   });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+export async function updateEventParticipantSlot(
+  eventId: number,
+  eventParticipantId: number,
+  formData: FormData,
+) {
+  const slotStartsAt = String(formData.get("slot_starts_at") ?? "") || null;
+  const slotEndsAt = String(formData.get("slot_ends_at") ?? "") || null;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participants")
+    .update({ slot_starts_at: slotStartsAt, slot_ends_at: slotEndsAt })
+    .eq("id", eventParticipantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+export async function removeEventParticipant(
+  eventId: number,
+  eventParticipantId: number,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participants")
+    .delete()
+    .eq("id", eventParticipantId);
   if (error) throw new Error(error.message);
 
   revalidatePath(`/dashboard/events/${eventId}`);
@@ -109,6 +201,17 @@ export async function addEventAsset(
   revalidatePath(`/dashboard/events/${eventId}`);
 }
 
+export async function deleteEventAsset(eventId: number, assetId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_assets")
+    .delete()
+    .eq("id", assetId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
 export async function addSponsorChecklistItem(
   eventId: number,
   formData: FormData,
@@ -125,6 +228,17 @@ export async function addSponsorChecklistItem(
     description,
     due_at: dueAt,
   });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+export async function deleteChecklistItem(eventId: number, itemId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("sponsor_checklist_items")
+    .delete()
+    .eq("id", itemId);
   if (error) throw new Error(error.message);
 
   revalidatePath(`/dashboard/events/${eventId}`);

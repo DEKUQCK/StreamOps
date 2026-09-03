@@ -2,25 +2,17 @@ import { createClient } from "@/utils/supabase/server";
 import {
   addEventAsset,
   addSponsorChecklistItem,
+  deleteChecklistItem,
+  deleteEvent,
+  deleteEventAsset,
   inviteParticipantToEvent,
+  removeEventParticipant,
+  updateEvent,
+  updateEventParticipantSlot,
 } from "../../actions";
-
-const ASSET_TYPE_LABELS: Record<string, string> = {
-  overlay_url: "Overlay-URL",
-  stream_title: "Stream-Titel",
-  rules: "Regeln",
-  server_ip: "Server-IP",
-  server_password: "Server-Passwort",
-  discord_invite: "Discord-Invite",
-  other: "Sonstiges",
-};
-
-const RSVP_LABELS: Record<string, string> = {
-  invited: "Eingeladen",
-  confirmed: "Zugesagt",
-  declined: "Abgesagt",
-  cancelled: "Storniert",
-};
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { EventHeaderEditor } from "./event-header-editor";
+import { ParticipantSlotCard } from "./participant-slot-card";
 
 export default async function EventDetailPage({
   params,
@@ -72,19 +64,16 @@ export default async function EventDetailPage({
 
   const inviteToEvent = inviteParticipantToEvent.bind(null, eventId);
   const addChecklistItem = addSponsorChecklistItem.bind(null, eventId);
+  const updateEventAction = updateEvent.bind(null, eventId);
+  const deleteEventAction = deleteEvent.bind(null, eventId);
 
   return (
     <div className="flex flex-col gap-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {event.starts_at
-            ? new Date(event.starts_at).toLocaleString("de-DE")
-            : "Termin offen"}
-          {event.ends_at &&
-            ` – ${new Date(event.ends_at).toLocaleString("de-DE")}`}
-        </p>
-      </div>
+      <EventHeaderEditor
+        event={event}
+        updateEvent={updateEventAction}
+        deleteEvent={deleteEventAction}
+      />
 
       {/* Kalender & Slot-Buchung */}
       <section>
@@ -100,89 +89,22 @@ export default async function EventDetailPage({
                 const participant = (
                   ep as unknown as { participants: { display_name: string } }
                 ).participants;
-                const portalUrl = `/portal/${ep.magic_link_token}`;
-                const addAsset = addEventAsset.bind(null, eventId, ep.id);
                 return (
-                  <div key={ep.id} className="card p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{participant.display_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {ep.slot_starts_at
-                            ? new Date(ep.slot_starts_at).toLocaleString(
-                                "de-DE",
-                              )
-                            : "Kein Slot gesetzt"}
-                        </p>
-                      </div>
-                      <span className="badge">
-                        {RSVP_LABELS[ep.rsvp_status] ?? ep.rsvp_status}
-                      </span>
-                    </div>
-
-                    <p className="mt-2 break-all text-xs text-muted-foreground">
-                      Info-Hub-Link: {portalUrl}
-                    </p>
-
-                    {/* Asset-Tresor */}
-                    <div className="mt-3 border-t border-border pt-3">
-                      <p className="label-xs">Asset-Tresor</p>
-                      <ul className="mt-2 flex flex-col gap-1">
-                        {ep.event_assets.map((asset) => (
-                          <li key={asset.id} className="text-sm">
-                            <span className="text-muted-foreground">
-                              {ASSET_TYPE_LABELS[asset.asset_type] ??
-                                asset.asset_type}
-                              :
-                            </span>{" "}
-                            {asset.label}
-                            {asset.is_sensitive && (
-                              <span className="ml-1 text-xs text-warning-foreground">
-                                (sensibel)
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-
-                      <form
-                        action={addAsset}
-                        className="mt-2 flex flex-wrap items-center gap-2"
-                      >
-                        <select
-                          name="asset_type"
-                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
-                        >
-                          {Object.entries(ASSET_TYPE_LABELS).map(
-                            ([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ),
-                          )}
-                        </select>
-                        <input
-                          name="label"
-                          required
-                          placeholder="Beschriftung"
-                          className="w-32 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-primary"
-                        />
-                        <input
-                          name="value"
-                          required
-                          placeholder="Wert"
-                          className="w-40 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-primary"
-                        />
-                        <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <input type="checkbox" name="is_sensitive" />
-                          sensibel
-                        </label>
-                        <button type="submit" className="btn-primary px-3 py-1 text-xs">
-                          Hinzufügen
-                        </button>
-                      </form>
-                    </div>
-                  </div>
+                  <ParticipantSlotCard
+                    key={ep.id}
+                    displayName={participant.display_name}
+                    rsvpStatus={ep.rsvp_status}
+                    slotStartsAt={ep.slot_starts_at}
+                    slotEndsAt={ep.slot_ends_at}
+                    portalUrl={`/portal/${ep.magic_link_token}`}
+                    assets={ep.event_assets.map((asset) => ({
+                      ...asset,
+                      deleteAction: deleteEventAsset.bind(null, eventId, asset.id),
+                    }))}
+                    updateSlot={updateEventParticipantSlot.bind(null, eventId, ep.id)}
+                    removeParticipant={removeEventParticipant.bind(null, eventId, ep.id)}
+                    addAsset={addEventAsset.bind(null, eventId, ep.id)}
+                  />
                 );
               })
             )}
@@ -247,6 +169,7 @@ export default async function EventDetailPage({
                     <th className="label-xs pb-2 font-semibold">
                       Erledigt von
                     </th>
+                    <th className="label-xs pb-2 font-semibold" />
                   </tr>
                 </thead>
                 <tbody>
@@ -277,6 +200,15 @@ export default async function EventDetailPage({
                         </td>
                         <td className="py-2 text-muted-foreground">
                           {completedCount} / {eventParticipants?.length ?? 0}
+                        </td>
+                        <td className="py-2 text-right">
+                          <ConfirmDeleteButton
+                            action={deleteChecklistItem.bind(null, eventId, item.id)}
+                            confirmMessage={`Vorgabe "${item.sponsor_name}: ${item.description}" wirklich löschen?`}
+                            className="text-xs text-danger hover:underline"
+                          >
+                            Löschen
+                          </ConfirmDeleteButton>
                         </td>
                       </tr>
                     );

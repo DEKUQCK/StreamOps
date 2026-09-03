@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
-import { addParticipantToRoster } from "../actions";
+import { addParticipantToRoster, deleteParticipant, updateParticipant } from "../actions";
+import { RosterRow } from "./roster-row";
 
 export default async function RosterPage() {
   const supabase = await createClient();
@@ -45,17 +46,12 @@ export default async function RosterPage() {
           ) : (
             <ul className="flex flex-col gap-3">
               {participants.map((p) => (
-                <li key={p.id} className="card px-4 py-3.5">
-                  <p className="font-medium">{p.display_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {[p.twitch_username && `Twitch: ${p.twitch_username}`, p.email]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                  <p className="mt-1.5 break-all text-xs text-muted-foreground">
-                    Kalender-Link: /my-events/{p.portal_token}
-                  </p>
-                </li>
+                <RosterRow
+                  key={p.id}
+                  participant={p}
+                  updateParticipant={updateParticipant.bind(null, p.id)}
+                  deleteParticipant={deleteParticipant.bind(null, p.id)}
+                />
               ))}
             </ul>
           )}
