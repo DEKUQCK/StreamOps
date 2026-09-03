@@ -21,6 +21,7 @@ export async function createOrganization(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 export async function createEvent(organizationId: number, formData: FormData) {
@@ -49,6 +50,7 @@ export async function acceptInvite(inviteId: number) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 export async function inviteTeamMember(organizationId: number, formData: FormData) {
