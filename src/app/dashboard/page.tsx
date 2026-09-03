@@ -17,7 +17,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const organizationId = await requireOrganizationId(supabase, user!.id);
+  const organizationId = await requireOrganizationId(supabase, user);
   const { data: organization } = await supabase
     .from("organizations")
     .select("name")

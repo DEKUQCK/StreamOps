@@ -21,7 +21,7 @@ export default async function TeamPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const organizationId = await requireOrganizationId(supabase, user!.id);
+  const organizationId = await requireOrganizationId(supabase, user);
 
   const [{ data: membersData }, { data: invites }] = await Promise.all([
     supabase.rpc("get_organization_members", {

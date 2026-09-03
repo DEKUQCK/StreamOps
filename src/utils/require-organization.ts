@@ -12,12 +12,16 @@ import type { Database } from "@/types/supabase";
  */
 export async function requireOrganizationId(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  user: { id: string } | null,
 ): Promise<number> {
+  if (!user) {
+    redirect("/login");
+  }
+
   const { data } = await supabase
     .from("organization_members")
     .select("organization_id")
-    .eq("user_id", userId)
+    .eq("user_id", user.id)
     .limit(1);
 
   const organizationId = data?.[0]?.organization_id;

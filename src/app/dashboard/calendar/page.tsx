@@ -9,7 +9,7 @@ export default async function DashboardCalendarPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const organizationId = await requireOrganizationId(supabase, user!.id);
+  const organizationId = await requireOrganizationId(supabase, user);
 
   const { data: events } = await supabase
     .from("events")

@@ -61,11 +61,12 @@ export async function inviteTeamMember(organizationId: number, formData: FormDat
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) throw new Error("Nicht angemeldet.");
 
   const { error } = await supabase.from("organization_invites").insert({
     organization_id: organizationId,
     email,
-    invited_by: user!.id,
+    invited_by: user.id,
   });
   if (error) throw new Error(error.message);
 
