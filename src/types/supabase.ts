@@ -177,6 +177,41 @@ export type Database = {
           },
         ]
       }
+      organization_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: number
+          invited_by: string
+          organization_id: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: never
+          invited_by: string
+          organization_id: number
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: never
+          invited_by?: string
+          organization_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -344,6 +379,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_organization_invite: {
+        Args: { p_invite_id: number }
+        Returns: number
+      }
       bot_get_pending_reminders: { Args: { p_secret: string }; Returns: Json }
       bot_mark_reminder_sent: {
         Args: {
@@ -359,6 +398,10 @@ export type Database = {
         Returns: boolean
       }
       create_organization: { Args: { p_name: string }; Returns: number }
+      get_organization_members: {
+        Args: { p_organization_id: number }
+        Returns: Json
+      }
       get_participant_calendar: { Args: { p_token: string }; Returns: Json }
       get_participant_portal: { Args: { p_token: string }; Returns: Json }
       set_rsvp_status: {

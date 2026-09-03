@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { createOrganization, signOut } from "./actions";
+import { acceptInvite, createOrganization, signOut } from "./actions";
 
 export default async function DashboardLayout({
   children,
@@ -24,6 +24,11 @@ export default async function DashboardLayout({
     .eq("user_id", user.id);
 
   if (!memberships || memberships.length === 0) {
+    const { data: pendingInvites } = await supabase
+      .from("organization_invites")
+      .select("id, organization_id, organizations(name)")
+      .is("accepted_at", null);
+
     return (
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between px-6 py-5 sm:px-10">
@@ -32,14 +37,42 @@ export default async function DashboardLayout({
           </span>
           <ThemeToggle />
         </header>
-        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-24">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 pb-24">
+          {pendingInvites && pendingInvites.length > 0 && (
+            <div className="card w-full max-w-sm p-6">
+              <h1 className="text-xl font-semibold">Du wurdest eingeladen</h1>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Tritt einer bestehenden Organisation bei:
+              </p>
+              <div className="mt-4 flex flex-col gap-2">
+                {pendingInvites.map((invite) => {
+                  const orgName = (
+                    invite as unknown as { organizations: { name: string } }
+                  ).organizations.name;
+                  return (
+                    <form key={invite.id} action={acceptInvite.bind(null, invite.id)}>
+                      <button
+                        type="submit"
+                        className="btn-primary w-full justify-between"
+                      >
+                        <span>{orgName}</span>
+                        <span>Beitreten</span>
+                      </button>
+                    </form>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="card w-full max-w-sm p-6">
             <h1 className="text-xl font-semibold">
-              Willkommen bei StreamOps
+              {pendingInvites && pendingInvites.length > 0
+                ? "Oder eigene Organisation anlegen"
+                : "Willkommen bei StreamOps"}
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Lege zuerst eure Agentur/Organisation an, um Events zu
-              verwalten.
+              Lege eure Agentur/Organisation an, um Events zu verwalten.
             </p>
             <form
               action={createOrganization}
@@ -86,6 +119,12 @@ export default async function DashboardLayout({
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
               Kalender
+            </Link>
+            <Link
+              href="/dashboard/team"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Team
             </Link>
             <span className="hidden text-muted-foreground sm:inline">
               {user.email}

@@ -41,6 +41,58 @@ export async function createEvent(organizationId: number, formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function acceptInvite(inviteId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_organization_invite", {
+    p_invite_id: inviteId,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard");
+}
+
+export async function inviteTeamMember(organizationId: number, formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("organization_invites").insert({
+    organization_id: organizationId,
+    email,
+    invited_by: user!.id,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/team");
+}
+
+export async function cancelInvite(inviteId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organization_invites")
+    .delete()
+    .eq("id", inviteId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/team");
+}
+
+export async function removeTeamMember(organizationId: number, userId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organization_members")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/team");
+}
+
 export async function updateEvent(eventId: number, formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const startsAt = String(formData.get("starts_at") ?? "") || null;
