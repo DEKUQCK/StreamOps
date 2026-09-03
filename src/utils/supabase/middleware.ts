@@ -25,8 +25,15 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Required: refreshes the auth token and keeps the session cookie in sync.
-  await supabase.auth.getUser();
+  try {
+    // Required: refreshes the auth token and keeps the session cookie in sync.
+    await supabase.auth.getUser();
+  } catch {
+    // A corrupted/stale session cookie must not take down every request -
+    // middleware errors bypass React error boundaries entirely. Let the
+    // request through; the page's own auth check will send an actually
+    // unauthenticated user to /login.
+  }
 
   return supabaseResponse;
 }
