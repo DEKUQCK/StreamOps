@@ -131,6 +131,7 @@ export type Database = {
           event_id: number
           id: number
           invited_by: string
+          is_waitlist: boolean
         }
         Insert: {
           accepted_at?: string | null
@@ -139,6 +140,7 @@ export type Database = {
           event_id: number
           id?: never
           invited_by: string
+          is_waitlist?: boolean
         }
         Update: {
           accepted_at?: string | null
@@ -147,6 +149,7 @@ export type Database = {
           event_id?: number
           id?: never
           invited_by?: string
+          is_waitlist?: boolean
         }
         Relationships: [
           {
@@ -163,6 +166,7 @@ export type Database = {
           created_at: string
           event_id: number
           id: number
+          is_waitlist: boolean
           participant_user_id: string
           rsvp_status: string
           slot_ends_at: string | null
@@ -172,6 +176,7 @@ export type Database = {
           created_at?: string
           event_id: number
           id?: never
+          is_waitlist?: boolean
           participant_user_id: string
           rsvp_status?: string
           slot_ends_at?: string | null
@@ -181,6 +186,7 @@ export type Database = {
           created_at?: string
           event_id?: number
           id?: never
+          is_waitlist?: boolean
           participant_user_id?: string
           rsvp_status?: string
           slot_ends_at?: string | null

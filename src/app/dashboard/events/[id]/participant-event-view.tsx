@@ -18,6 +18,7 @@ const RSVP_LABELS: Record<string, string> = {
   confirmed: "Zugesagt",
   declined: "Abgesagt",
   cancelled: "Storniert",
+  no_show: "Nicht erschienen",
 };
 
 export type ParticipantAsset = {
@@ -39,6 +40,7 @@ export type ParticipantChecklistItem = {
 export function ParticipantEventView({
   eventName,
   rsvpStatus,
+  isWaitlist,
   slotStartsAt,
   slotEndsAt,
   assets,
@@ -48,6 +50,7 @@ export function ParticipantEventView({
 }: {
   eventName: string;
   rsvpStatus: string;
+  isWaitlist: boolean;
   slotStartsAt: string | null;
   slotEndsAt: string | null;
   assets: ParticipantAsset[];
@@ -94,6 +97,13 @@ export function ParticipantEventView({
           </p>
         )}
       </div>
+
+      {isWaitlist && (
+        <p className="rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+          Du stehst aktuell auf der <strong>Warteliste</strong> für dieses
+          Event — du rutschst nach, sobald ein Platz frei wird.
+        </p>
+      )}
 
       <section className="card p-4">
         <h2 className="text-sm font-semibold">Teilnahme</h2>

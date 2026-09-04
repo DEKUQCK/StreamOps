@@ -18,12 +18,14 @@ const RSVP_LABELS: Record<string, string> = {
   confirmed: "Zugesagt",
   declined: "Abgesagt",
   cancelled: "Storniert",
+  no_show: "Nicht erschienen",
 };
 
 const RSVP_BADGE_CLASS: Record<string, string> = {
   confirmed: "badge-success",
   declined: "badge-danger",
   cancelled: "badge-danger",
+  no_show: "badge-danger",
 };
 
 function toDatetimeLocalValue(iso: string | null) {
@@ -45,23 +47,30 @@ type Asset = {
 export function ParticipantSlotCard({
   displayName,
   rsvpStatus,
+  isWaitlist,
   slotStartsAt,
   slotEndsAt,
   assets,
   updateSlot,
   removeParticipant,
   addAsset,
+  toggleWaitlist,
+  markNoShow,
 }: {
   displayName: string;
   rsvpStatus: string;
+  isWaitlist: boolean;
   slotStartsAt: string | null;
   slotEndsAt: string | null;
   assets: Asset[];
   updateSlot: (formData: FormData) => Promise<void>;
   removeParticipant: () => Promise<void>;
   addAsset: (formData: FormData) => Promise<void>;
+  toggleWaitlist: () => Promise<void>;
+  markNoShow: () => Promise<void>;
 }) {
   const [editingSlot, setEditingSlot] = useState(false);
+  const canMarkNoShow = !["no_show", "declined", "cancelled"].includes(rsvpStatus);
 
   return (
     <div className="card p-4">
@@ -77,6 +86,7 @@ export function ParticipantSlotCard({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {isWaitlist && <span className="badge">Warteliste</span>}
           <span className={`badge ${RSVP_BADGE_CLASS[rsvpStatus] ?? ""}`}>
             {RSVP_LABELS[rsvpStatus] ?? rsvpStatus}
           </span>
@@ -94,6 +104,20 @@ export function ParticipantSlotCard({
             Entfernen
           </ConfirmDeleteButton>
         </div>
+      </div>
+
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+        <button
+          onClick={toggleWaitlist}
+          className="text-muted-foreground hover:underline"
+        >
+          {isWaitlist ? "Nachrücken lassen" : "Auf Warteliste setzen"}
+        </button>
+        {canMarkNoShow && (
+          <button onClick={markNoShow} className="text-muted-foreground hover:underline">
+            Als No-Show markieren
+          </button>
+        )}
       </div>
 
       {editingSlot && (

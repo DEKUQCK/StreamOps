@@ -190,6 +190,7 @@ export async function sendBroadcast(eventId: number, formData: FormData) {
  */
 export async function inviteToEvent(eventId: number, formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const isWaitlist = formData.get("is_waitlist") === "on";
   if (!email) return;
 
   const supabase = await createClient();
@@ -202,6 +203,7 @@ export async function inviteToEvent(eventId: number, formData: FormData) {
     event_id: eventId,
     email,
     invited_by: user.id,
+    is_waitlist: isWaitlist,
   });
   if (error) throw new Error(error.message);
 
@@ -267,6 +269,42 @@ export async function removeEventParticipant(
   const { error } = await supabase
     .from("event_participants")
     .delete()
+    .eq("id", eventParticipantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+/**
+ * Moves someone onto or off the waitlist - used both to invite overflow
+ * candidates directly to the waitlist, and to move a waitlisted person up
+ * into the main participant list once a slot opens up.
+ */
+export async function toggleWaitlist(
+  eventId: number,
+  eventParticipantId: number,
+  isWaitlist: boolean,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participants")
+    .update({ is_waitlist: isWaitlist })
+    .eq("id", eventParticipantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+/**
+ * Distinct from "declined" (advance notice) - flags someone who was
+ * expected but never showed, so the organizer knows to pull in a
+ * replacement from the waitlist.
+ */
+export async function markNoShow(eventId: number, eventParticipantId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participants")
+    .update({ rsvp_status: "no_show" })
     .eq("id", eventParticipantId);
   if (error) throw new Error(error.message);
 

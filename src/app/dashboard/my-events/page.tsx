@@ -7,6 +7,7 @@ const RSVP_LABELS: Record<string, string> = {
   confirmed: "Zugesagt",
   declined: "Abgesagt",
   cancelled: "Storniert",
+  no_show: "Nicht erschienen",
 };
 
 export default async function MyEventsPage() {
@@ -19,7 +20,7 @@ export default async function MyEventsPage() {
   const { data: participations } = await supabase
     .from("event_participants")
     .select(
-      "id, rsvp_status, slot_starts_at, slot_ends_at, events(id, name, starts_at, ends_at)",
+      "id, rsvp_status, is_waitlist, slot_starts_at, slot_ends_at, events(id, name, starts_at, ends_at)",
     )
     .eq("participant_user_id", user.id);
 
@@ -34,6 +35,7 @@ export default async function MyEventsPage() {
       return {
         eventParticipantId: p.id,
         rsvpStatus: p.rsvp_status,
+        isWaitlist: p.is_waitlist,
         slotStartsAt: p.slot_starts_at,
         eventId: event.id,
         eventName: event.name,
@@ -72,7 +74,7 @@ export default async function MyEventsPage() {
                     ? new Date(e.startsAt).toLocaleString("de-DE")
                     : "Termin offen"}
                   {" · "}
-                  {RSVP_LABELS[e.rsvpStatus] ?? e.rsvpStatus}
+                  {e.isWaitlist ? "Warteliste" : RSVP_LABELS[e.rsvpStatus] ?? e.rsvpStatus}
                 </p>
               </Link>
               {e.rsvpStatus === "invited" && (

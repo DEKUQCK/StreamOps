@@ -8,9 +8,11 @@ import {
   deleteEvent,
   deleteEventAsset,
   inviteToEvent,
+  markNoShow,
   removeEventParticipant,
   sendBroadcast,
   setChecklistItemComplete,
+  toggleWaitlist,
   updateEvent,
   updateEventParticipantSlot,
   updateRsvpStatus,
@@ -74,7 +76,7 @@ export default async function EventDetailPage({
       supabase
         .from("event_participants")
         .select(
-          "id, rsvp_status, slot_starts_at, slot_ends_at, participant_user_id, profiles(display_name), event_assets(id, asset_type, label, value, is_sensitive)",
+          "id, rsvp_status, is_waitlist, slot_starts_at, slot_ends_at, participant_user_id, profiles(display_name), event_assets(id, asset_type, label, value, is_sensitive)",
         )
         .eq("event_id", eventId),
       supabase
@@ -86,7 +88,7 @@ export default async function EventDetailPage({
         .order("due_at", { ascending: true, nullsFirst: false }),
       supabase
         .from("event_invites")
-        .select("id, email, created_at")
+        .select("id, email, created_at, is_waitlist")
         .eq("event_id", eventId)
         .is("accepted_at", null)
         .order("created_at"),
@@ -104,6 +106,36 @@ export default async function EventDetailPage({
   const deleteEventAction = deleteEvent.bind(null, eventId);
   const sendBroadcastAction = sendBroadcast.bind(null, eventId);
 
+  const mainParticipants = (eventParticipants ?? []).filter((ep) => !ep.is_waitlist);
+  const waitlistParticipants = (eventParticipants ?? []).filter((ep) => ep.is_waitlist);
+
+  const renderParticipant = (
+    ep: NonNullable<typeof eventParticipants>[number],
+  ) => {
+    const profile = (
+      ep as unknown as { profiles: { display_name: string } | null }
+    ).profiles;
+    return (
+      <ParticipantSlotCard
+        key={ep.id}
+        displayName={profile?.display_name ?? "Unbekannt"}
+        rsvpStatus={ep.rsvp_status}
+        isWaitlist={ep.is_waitlist}
+        slotStartsAt={ep.slot_starts_at}
+        slotEndsAt={ep.slot_ends_at}
+        assets={ep.event_assets.map((asset) => ({
+          ...asset,
+          deleteAction: deleteEventAsset.bind(null, eventId, asset.id),
+        }))}
+        updateSlot={updateEventParticipantSlot.bind(null, eventId, ep.id)}
+        removeParticipant={removeEventParticipant.bind(null, eventId, ep.id)}
+        addAsset={addEventAsset.bind(null, eventId, ep.id)}
+        toggleWaitlist={toggleWaitlist.bind(null, eventId, ep.id, !ep.is_waitlist)}
+        markNoShow={markNoShow.bind(null, eventId, ep.id)}
+      />
+    );
+  };
+
   return (
     <div className="flex flex-col gap-10">
       <EventHeaderEditor
@@ -116,33 +148,24 @@ export default async function EventDetailPage({
       <section>
         <h2 className="text-lg font-semibold">Teilnehmer &amp; Slots</h2>
         <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 flex flex-col gap-4">
-            {!eventParticipants || eventParticipants.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                Noch niemand eingeladen.
-              </p>
-            ) : (
-              eventParticipants.map((ep) => {
-                const profile = (
-                  ep as unknown as { profiles: { display_name: string } | null }
-                ).profiles;
-                return (
-                  <ParticipantSlotCard
-                    key={ep.id}
-                    displayName={profile?.display_name ?? "Unbekannt"}
-                    rsvpStatus={ep.rsvp_status}
-                    slotStartsAt={ep.slot_starts_at}
-                    slotEndsAt={ep.slot_ends_at}
-                    assets={ep.event_assets.map((asset) => ({
-                      ...asset,
-                      deleteAction: deleteEventAsset.bind(null, eventId, asset.id),
-                    }))}
-                    updateSlot={updateEventParticipantSlot.bind(null, eventId, ep.id)}
-                    removeParticipant={removeEventParticipant.bind(null, eventId, ep.id)}
-                    addAsset={addEventAsset.bind(null, eventId, ep.id)}
-                  />
-                );
-              })
+          <div className="md:col-span-2 flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              {mainParticipants.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                  Noch niemand eingeladen.
+                </p>
+              ) : (
+                mainParticipants.map(renderParticipant)
+              )}
+            </div>
+
+            {waitlistParticipants.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-sm font-semibold text-muted-foreground">
+                  Warteliste
+                </h3>
+                {waitlistParticipants.map(renderParticipant)}
+              </div>
             )}
           </div>
 
@@ -162,6 +185,10 @@ export default async function EventDetailPage({
                 placeholder="creator@beispiel.de"
                 className="input"
               />
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input type="checkbox" name="is_waitlist" />
+                Direkt auf die Warteliste setzen
+              </label>
               <button type="submit" className="btn-primary mt-1">
                 Einladen
               </button>
@@ -173,7 +200,14 @@ export default async function EventDetailPage({
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {invites.map((invite) => (
                     <li key={invite.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span className="truncate">{invite.email}</span>
+                      <span className="truncate">
+                        {invite.email}
+                        {invite.is_waitlist && (
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            (Warteliste)
+                          </span>
+                        )}
+                      </span>
                       <ConfirmDeleteButton
                         action={cancelEventInvite.bind(null, eventId, invite.id)}
                         confirmMessage={`Einladung an ${invite.email} zurückziehen?`}
@@ -239,7 +273,7 @@ export default async function EventDetailPage({
                             : "–"}
                         </td>
                         <td className="py-2 text-muted-foreground">
-                          {completedCount} / {eventParticipants?.length ?? 0}
+                          {completedCount} / {mainParticipants.length}
                         </td>
                         <td className="py-2 text-right">
                           <ConfirmDeleteButton
@@ -363,7 +397,7 @@ async function ParticipantEventPage({
   const { data: myParticipant } = await supabase
     .from("event_participants")
     .select(
-      "id, rsvp_status, slot_starts_at, slot_ends_at, event_assets(id, asset_type, label, value, is_sensitive)",
+      "id, rsvp_status, is_waitlist, slot_starts_at, slot_ends_at, event_assets(id, asset_type, label, value, is_sensitive)",
     )
     .eq("event_id", eventId)
     .eq("participant_user_id", userId)
@@ -420,6 +454,7 @@ async function ParticipantEventPage({
     <ParticipantEventView
       eventName={eventName}
       rsvpStatus={myParticipant.rsvp_status}
+      isWaitlist={myParticipant.is_waitlist}
       slotStartsAt={myParticipant.slot_starts_at}
       slotEndsAt={myParticipant.slot_ends_at}
       assets={assets}
