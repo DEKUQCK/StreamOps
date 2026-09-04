@@ -16,6 +16,7 @@ import {
   updateRsvpStatus,
 } from "../../actions";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmSubmitForm } from "@/components/confirm-submit-form";
 import { EventHeaderEditor } from "./event-header-editor";
 import { ParticipantSlotCard } from "./participant-slot-card";
 import {
@@ -119,8 +120,18 @@ export default async function EventDetailPage({
           Discord-DM (z. B. bei einem kurzfristigen Server-IP-Wechsel) —
           unabhängig von den geplanten Erinnerungen.
         </p>
-        <div className="card mt-3 p-4">
-          <form action={sendBroadcastAction} className="flex flex-col gap-2 sm:flex-row">
+        <div className="card mt-3 border-warning-foreground/40 bg-warning-foreground/5 p-4">
+          <p className="text-xs font-medium text-warning-foreground">
+            ⚠️ Wird sofort verschickt und kann danach nicht mehr zurückgeholt
+            werden.
+          </p>
+          <ConfirmSubmitForm
+            action={sendBroadcastAction}
+            confirmMessage={(formData) =>
+              `Diese Nachricht jetzt an alle Teilnehmer:innen senden?\n\n„${formData.get("message")}"`
+            }
+            className="mt-2 flex flex-col gap-2 sm:flex-row"
+          >
             <input
               name="message"
               required
@@ -130,7 +141,7 @@ export default async function EventDetailPage({
             <button type="submit" className="btn-primary shrink-0">
               Sofort senden
             </button>
-          </form>
+          </ConfirmSubmitForm>
           {broadcasts && broadcasts.length > 0 && (
             <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
               {broadcasts.map((b) => (
