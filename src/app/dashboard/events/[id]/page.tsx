@@ -108,36 +108,38 @@ export default async function EventDetailPage({
       />
 
       {/* Sofort-Broadcast */}
-      <section className="card p-4">
-        <h2 className="text-sm font-semibold">Sofort-Broadcast</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
+      <section>
+        <h2 className="text-lg font-semibold">Sofort-Broadcast</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Dringende Änderung? Schick allen Teilnehmer:innen sofort eine
           Discord-DM (z. B. bei einem kurzfristigen Server-IP-Wechsel) —
           unabhängig von den geplanten Erinnerungen.
         </p>
-        <form action={sendBroadcastAction} className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <input
-            name="message"
-            required
-            placeholder="z. B. Server-IP hat sich geändert: 1.2.3.4"
-            className="input flex-1"
-          />
-          <button type="submit" className="btn-primary shrink-0">
-            Sofort senden
-          </button>
-        </form>
-        {broadcasts && broadcasts.length > 0 && (
-          <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
-            {broadcasts.map((b) => (
-              <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
-                <span className="truncate text-muted-foreground">{b.message}</span>
-                <span className="badge shrink-0">
-                  {b.sent_at ? "Gesendet" : "Wird gesendet …"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="card mt-3 p-4">
+          <form action={sendBroadcastAction} className="flex flex-col gap-2 sm:flex-row">
+            <input
+              name="message"
+              required
+              placeholder="z. B. Server-IP hat sich geändert: 1.2.3.4"
+              className="input flex-1"
+            />
+            <button type="submit" className="btn-primary shrink-0">
+              Sofort senden
+            </button>
+          </form>
+          {broadcasts && broadcasts.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+              {broadcasts.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate text-muted-foreground">{b.message}</span>
+                  <span className="badge shrink-0">
+                    {b.sent_at ? "Gesendet" : "Wird gesendet …"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
       {/* Kalender & Slot-Buchung */}

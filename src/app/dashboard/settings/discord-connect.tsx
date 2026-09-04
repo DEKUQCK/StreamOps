@@ -60,17 +60,17 @@ export function DiscordConnect({
       <h2 className="text-sm font-semibold">Discord</h2>
       <p className="mt-1 text-xs text-muted-foreground">
         Verknüpfe deinen Discord-Account, damit der Bot dir Erinnerungen per
-        DM schicken kann - deine Discord-ID wird dabei automatisch übernommen.
+        DM schicken kann — deine Discord-ID wird dabei automatisch übernommen.
       </p>
       {connected ? (
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="badge">Verbunden{discordLabel ? ` als ${discordLabel}` : ""}</span>
-          <button disabled={pending} onClick={disconnect} className="btn-secondary px-3 py-1.5 text-xs">
+          <button disabled={pending} onClick={disconnect} className="btn-secondary px-2.5 py-1 text-xs">
             Trennen
           </button>
         </div>
       ) : (
-        <button disabled={pending} onClick={connect} className="btn-primary mt-3 px-3 py-1.5 text-xs">
+        <button disabled={pending} onClick={connect} className="btn-primary mt-3">
           Discord verknüpfen
         </button>
       )}
