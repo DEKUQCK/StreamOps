@@ -61,7 +61,7 @@ export function DashboardNav({
                   aria-hidden
                   onClick={() => setUserMenuOpen(false)}
                 />
-                <div className="card absolute right-0 z-20 mt-2 w-56 p-2">
+                <div className="card absolute right-0 top-full z-20 mt-2 w-56 p-2">
                   <p className="truncate px-2 py-1.5 text-xs text-muted-foreground">
                     {email}
                   </p>
@@ -114,7 +114,7 @@ export function DashboardNav({
             aria-hidden
             onClick={() => setMobileOpen(false)}
           />
-          <div className="card absolute right-0 left-0 z-20 mt-2 flex flex-col gap-1 p-2 sm:hidden">
+          <div className="card absolute right-0 left-0 top-full z-20 mt-2 flex flex-col gap-1 p-2 sm:hidden">
             {links.map((link) => (
               <Link
                 key={link.href}
