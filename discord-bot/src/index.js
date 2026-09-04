@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
 import { createClient } from "@supabase/supabase-js";
 import { processPendingReminders } from "./reminders.js";
+import { processPendingBroadcasts } from "./broadcasts.js";
 
 const {
   DISCORD_BOT_TOKEN,
@@ -10,6 +11,7 @@ const {
   BOT_SECRET,
   APP_BASE_URL = "http://localhost:3000",
   POLL_INTERVAL_MINUTES = "15",
+  BROADCAST_POLL_INTERVAL_SECONDS = "20",
 } = process.env;
 
 for (const [name, value] of Object.entries({
@@ -43,6 +45,16 @@ discordClient.once("clientReady", () => {
 
   tick();
   setInterval(tick, Number(POLL_INTERVAL_MINUTES) * 60_000);
+
+  const broadcastTick = () =>
+    processPendingBroadcasts({
+      supabase,
+      discordClient,
+      botSecret: BOT_SECRET,
+    }).catch((err) => console.error("Broadcast check failed:", err));
+
+  broadcastTick();
+  setInterval(broadcastTick, Number(BROADCAST_POLL_INTERVAL_SECONDS) * 1000);
 });
 
 discordClient.login(DISCORD_BOT_TOKEN);

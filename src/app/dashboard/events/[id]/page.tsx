@@ -9,6 +9,7 @@ import {
   deleteEventAsset,
   inviteToEvent,
   removeEventParticipant,
+  sendBroadcast,
   setChecklistItemComplete,
   updateEvent,
   updateEventParticipantSlot,
@@ -63,7 +64,7 @@ export default async function EventDetailPage({
     return <ParticipantEventPage eventId={eventId} eventName={event.name} userId={user.id} />;
   }
 
-  const [{ data: eventParticipants }, { data: checklistItems }, { data: invites }] =
+  const [{ data: eventParticipants }, { data: checklistItems }, { data: invites }, { data: broadcasts }] =
     await Promise.all([
       supabase
         .from("event_participants")
@@ -84,12 +85,19 @@ export default async function EventDetailPage({
         .eq("event_id", eventId)
         .is("accepted_at", null)
         .order("created_at"),
+      supabase
+        .from("event_broadcasts")
+        .select("id, message, created_at, sent_at")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: false })
+        .limit(5),
     ]);
 
   const inviteToEventAction = inviteToEvent.bind(null, eventId);
   const addChecklistItem = addSponsorChecklistItem.bind(null, eventId);
   const updateEventAction = updateEvent.bind(null, eventId);
   const deleteEventAction = deleteEvent.bind(null, eventId);
+  const sendBroadcastAction = sendBroadcast.bind(null, eventId);
 
   return (
     <div className="flex flex-col gap-10">
@@ -98,6 +106,39 @@ export default async function EventDetailPage({
         updateEvent={updateEventAction}
         deleteEvent={deleteEventAction}
       />
+
+      {/* Sofort-Broadcast */}
+      <section className="card p-4">
+        <h2 className="text-sm font-semibold">Sofort-Broadcast</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Dringende Änderung? Schick allen Teilnehmer:innen sofort eine
+          Discord-DM (z. B. bei einem kurzfristigen Server-IP-Wechsel) —
+          unabhängig von den geplanten Erinnerungen.
+        </p>
+        <form action={sendBroadcastAction} className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <input
+            name="message"
+            required
+            placeholder="z. B. Server-IP hat sich geändert: 1.2.3.4"
+            className="input flex-1"
+          />
+          <button type="submit" className="btn-primary shrink-0">
+            Sofort senden
+          </button>
+        </form>
+        {broadcasts && broadcasts.length > 0 && (
+          <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+            {broadcasts.map((b) => (
+              <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
+                <span className="truncate text-muted-foreground">{b.message}</span>
+                <span className="badge shrink-0">
+                  {b.sent_at ? "Gesendet" : "Wird gesendet …"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Kalender & Slot-Buchung */}
       <section>

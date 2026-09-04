@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_broadcasts: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_id: number
+          id: number
+          message: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_id: number
+          id?: never
+          message: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_id?: number
+          id?: never
+          message?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_broadcasts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_assets: {
         Row: {
           asset_type: string
@@ -405,7 +440,12 @@ export type Database = {
         Args: { p_invite_id: number }
         Returns: number
       }
+      bot_get_pending_broadcasts: { Args: { p_secret: string }; Returns: Json }
       bot_get_pending_reminders: { Args: { p_secret: string }; Returns: Json }
+      bot_mark_broadcast_sent: {
+        Args: { p_broadcast_id: number; p_secret: string }
+        Returns: boolean
+      }
       bot_mark_reminder_sent: {
         Args: {
           p_checklist_item_id?: number

@@ -157,6 +157,32 @@ export async function deleteEvent(eventId: number) {
 }
 
 /**
+ * "Sofort-Broadcast": one urgent Discord DM to every participant of the
+ * event (e.g. a last-minute server IP change), independent of the
+ * scheduled RSVP/checklist reminders. The bot polls event_broadcasts on a
+ * much shorter interval than the reminder check so this goes out quickly.
+ */
+export async function sendBroadcast(eventId: number, formData: FormData) {
+  const message = String(formData.get("message") ?? "").trim();
+  if (!message) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Nicht angemeldet.");
+
+  const { error } = await supabase.from("event_broadcasts").insert({
+    event_id: eventId,
+    message,
+    created_by: user.id,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+/**
  * Invite anyone by email to a specific event - they don't need to be in
  * any roster or organization, and don't need an account yet. They'll get
  * an event_invites row now and become an event_participants row once they

@@ -7,8 +7,14 @@ Sendet automatische Erinnerungen per Discord-DM:
 - **Sponsoren-Checklisten-Reminder**: zugesagte Teilnehmer, die eine
   Sponsoren-Vorgabe noch nicht abgehakt haben und die in den nächsten 2h
   fällig wird.
+- **Sofort-Broadcast**: eine von einem Veranstalter ausgelöste dringende
+  Nachricht (z. B. kurzfristiger Server-IP-Wechsel) an alle Teilnehmer:innen
+  eines Events. Wird auf einem eigenen, viel kürzeren Intervall geprüft
+  (`BROADCAST_POLL_INTERVAL_SECONDS`, Standard 20s), damit es sich wirklich
+  "sofort" anfühlt statt auf den nächsten regulären Reminder-Check zu warten.
 
-Jede Erinnerung wird nur einmal verschickt (siehe `reminder_log`-Tabelle).
+Jede Erinnerung wird nur einmal verschickt (siehe `reminder_log`-Tabelle
+bzw. `sent_at` bei Broadcasts).
 
 ## Sicherheit
 
