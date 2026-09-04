@@ -127,9 +127,8 @@ export default async function EventDetailPage({
           </p>
           <ConfirmSubmitForm
             action={sendBroadcastAction}
-            confirmMessage={(formData) =>
-              `Diese Nachricht jetzt an alle Teilnehmer:innen senden?\n\n„${formData.get("message")}"`
-            }
+            confirmMessage="Diese Nachricht jetzt an alle Teilnehmer:innen senden?"
+            confirmFieldName="message"
             className="mt-2 flex flex-col gap-2 sm:flex-row"
           >
             <input
