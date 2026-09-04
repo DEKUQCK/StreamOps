@@ -2,7 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+
+async function getOrigin() {
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const proto =
+    headerList.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
 
 export async function signOut() {
   const supabase = await createClient();
@@ -161,6 +170,16 @@ export async function inviteToEvent(eventId: number, formData: FormData) {
     invited_by: user.id,
   });
   if (error) throw new Error(error.message);
+
+  // Best-effort: this doubles as both the "you've been invited" notice and
+  // a login link, so the invitee actually finds out - without it they'd
+  // only learn about the invite by happening to log in themselves, or (at
+  // the earliest) from the Discord reminder 48h before their slot.
+  const origin = await getOrigin();
+  await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
+  });
 
   revalidatePath(`/dashboard/events/${eventId}`);
 }
