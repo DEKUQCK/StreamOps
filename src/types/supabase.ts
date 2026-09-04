@@ -398,6 +398,7 @@ export type Database = {
         Returns: boolean
       }
       create_organization: { Args: { p_name: string }; Returns: number }
+      get_my_pending_invites: { Args: Record<PropertyKey, never>; Returns: Json }
       get_organization_members: {
         Args: { p_organization_id: number }
         Returns: Json

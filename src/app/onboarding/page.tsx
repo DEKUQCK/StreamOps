@@ -23,10 +23,13 @@ export default async function OnboardingPage() {
     redirect("/dashboard");
   }
 
-  const { data: pendingInvites } = await supabase
-    .from("organization_invites")
-    .select("id, organization_id, organizations(name)")
-    .is("accepted_at", null);
+  const { data: pendingInvitesData } = await supabase.rpc(
+    "get_my_pending_invites",
+  );
+  const pendingInvites = (pendingInvitesData ?? []) as unknown as {
+    id: number;
+    organization_name: string;
+  }[];
 
   return (
     <div className="flex flex-1 flex-col">
@@ -37,36 +40,31 @@ export default async function OnboardingPage() {
         <ThemeToggle />
       </header>
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 pb-24">
-        {pendingInvites && pendingInvites.length > 0 && (
+        {pendingInvites.length > 0 && (
           <div className="card w-full max-w-sm p-6">
             <h1 className="text-xl font-semibold">Du wurdest eingeladen</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Tritt einer bestehenden Organisation bei:
             </p>
             <div className="mt-4 flex flex-col gap-2">
-              {pendingInvites.map((invite) => {
-                const orgName = (
-                  invite as unknown as { organizations: { name: string } }
-                ).organizations.name;
-                return (
-                  <form key={invite.id} action={acceptInvite.bind(null, invite.id)}>
-                    <button
-                      type="submit"
-                      className="btn-primary w-full justify-between"
-                    >
-                      <span>{orgName}</span>
-                      <span>Beitreten</span>
-                    </button>
-                  </form>
-                );
-              })}
+              {pendingInvites.map((invite) => (
+                <form key={invite.id} action={acceptInvite.bind(null, invite.id)}>
+                  <button
+                    type="submit"
+                    className="btn-primary w-full justify-between"
+                  >
+                    <span>{invite.organization_name}</span>
+                    <span>Beitreten</span>
+                  </button>
+                </form>
+              ))}
             </div>
           </div>
         )}
 
         <div className="card w-full max-w-sm p-6">
           <h1 className="text-xl font-semibold">
-            {pendingInvites && pendingInvites.length > 0
+            {pendingInvites.length > 0
               ? "Oder eigene Organisation anlegen"
               : "Willkommen bei StreamOps"}
           </h1>
