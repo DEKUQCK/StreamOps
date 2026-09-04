@@ -123,6 +123,9 @@ export function ParticipantSlotCard({
       {/* Asset-Tresor */}
       <div className="mt-3 border-t border-border pt-3">
         <p className="label-xs">Asset-Tresor</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Sensible Einträge werden 24h nach Event-Ende automatisch gelöscht.
+        </p>
         <ul className="mt-2 flex flex-col gap-1">
           {assets.map((asset) => (
             <li key={asset.id} className="flex items-center justify-between gap-2 text-sm">

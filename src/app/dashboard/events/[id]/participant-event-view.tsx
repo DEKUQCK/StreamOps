@@ -117,7 +117,8 @@ export function ParticipantEventView({
         <h2 className="text-sm font-semibold">Deine Unterlagen</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Sensible Felder sind ausgeblendet und verstecken sich automatisch
-          wieder, sobald du das Fenster wechselst.
+          wieder, sobald du das Fenster wechselst. Sie werden außerdem 24h
+          nach Event-Ende automatisch gelöscht.
         </p>
         <div className="mt-3 flex flex-col gap-2">
           {assets.length === 0 ? (
