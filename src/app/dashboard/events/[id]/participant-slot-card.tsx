@@ -74,9 +74,9 @@ export function ParticipantSlotCard({
 
   return (
     <div className="card p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="font-medium">{displayName}</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="truncate font-medium">{displayName}</p>
           {!editingSlot && (
             <p className="text-xs text-muted-foreground">
               {slotStartsAt
@@ -85,7 +85,7 @@ export function ParticipantSlotCard({
             </p>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isWaitlist && <span className="badge">Warteliste</span>}
           <span className={`badge ${RSVP_BADGE_CLASS[rsvpStatus] ?? ""}`}>
             {RSVP_LABELS[rsvpStatus] ?? rsvpStatus}

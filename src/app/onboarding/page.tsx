@@ -51,10 +51,10 @@ export default async function OnboardingPage() {
                 <form key={invite.id} action={acceptInvite.bind(null, invite.id)}>
                   <button
                     type="submit"
-                    className="btn-primary w-full justify-between"
+                    className="btn-primary w-full justify-between gap-2"
                   >
-                    <span>{invite.organization_name}</span>
-                    <span>Beitreten</span>
+                    <span className="min-w-0 truncate">{invite.organization_name}</span>
+                    <span className="shrink-0">Beitreten</span>
                   </button>
                 </form>
               ))}

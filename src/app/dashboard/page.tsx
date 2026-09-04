@@ -77,12 +77,12 @@ export default async function DashboardPage() {
               <form
                 key={`org-${invite.id}`}
                 action={acceptInvite.bind(null, invite.id)}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between gap-3"
               >
-                <span className="text-sm">
+                <span className="min-w-0 truncate text-sm">
                   Team-Beitritt: {invite.organization_name}
                 </span>
-                <button type="submit" className="btn-secondary px-2.5 py-1 text-xs">
+                <button type="submit" className="btn-secondary shrink-0 px-2.5 py-1 text-xs">
                   Beitreten
                 </button>
               </form>
@@ -91,10 +91,10 @@ export default async function DashboardPage() {
               <form
                 key={`event-${invite.id}`}
                 action={acceptEventInvite.bind(null, invite.id)}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between gap-3"
               >
-                <span className="text-sm">Event: {invite.event_name}</span>
-                <button type="submit" className="btn-secondary px-2.5 py-1 text-xs">
+                <span className="min-w-0 truncate text-sm">Event: {invite.event_name}</span>
+                <button type="submit" className="btn-secondary shrink-0 px-2.5 py-1 text-xs">
                   Annehmen
                 </button>
               </form>
@@ -115,17 +115,19 @@ export default async function DashboardPage() {
                 <li key={event.id}>
                   <Link
                     href={`/dashboard/events/${event.id}`}
-                    className="card flex items-center justify-between px-4 py-3.5 transition-colors hover:border-primary/50"
+                    className="card flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:border-primary/50"
                   >
-                    <div>
-                      <p className="font-medium">{event.name}</p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{event.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {event.starts_at
                           ? new Date(event.starts_at).toLocaleString("de-DE")
                           : "Termin offen"}
                       </p>
                     </div>
-                    <span className={`badge ${STATUS_BADGE_CLASS[event.status] ?? ""}`}>
+                    <span
+                      className={`badge shrink-0 ${STATUS_BADGE_CLASS[event.status] ?? ""}`}
+                    >
                       {STATUS_LABELS[event.status] ?? event.status}
                     </span>
                   </Link>

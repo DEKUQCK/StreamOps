@@ -200,7 +200,7 @@ export default async function EventDetailPage({
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {invites.map((invite) => (
                     <li key={invite.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span className="truncate">
+                      <span className="min-w-0 truncate">
                         {invite.email}
                         {invite.is_waitlist && (
                           <span className="ml-1 text-xs text-muted-foreground">
@@ -369,7 +369,7 @@ export default async function EventDetailPage({
             <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
               {broadcasts.map((b) => (
                 <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate text-muted-foreground">{b.message}</span>
+                  <span className="min-w-0 truncate text-muted-foreground">{b.message}</span>
                   <span className={`badge shrink-0 ${b.sent_at ? "badge-success" : ""}`}>
                     {b.sent_at ? "Gesendet" : "Wird gesendet …"}
                   </span>

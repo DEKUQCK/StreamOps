@@ -55,10 +55,10 @@ export default async function TeamPage() {
               {members.map((member) => (
                 <li
                   key={member.user_id}
-                  className="card flex items-center justify-between px-4 py-3"
+                  className="card flex items-center justify-between gap-3 px-4 py-3"
                 >
-                  <div>
-                    <p className="text-sm font-medium">{member.email}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{member.email}</p>
                     <p className="text-xs text-muted-foreground">
                       {ROLE_LABELS[member.role] ?? member.role}
                     </p>
@@ -67,7 +67,7 @@ export default async function TeamPage() {
                     <ConfirmDeleteButton
                       action={removeTeamMember.bind(null, organizationId, member.user_id)}
                       confirmMessage={`${member.email} wirklich aus dem Team entfernen?`}
-                      className="btn-danger px-2.5 py-1 text-xs"
+                      className="btn-danger shrink-0 px-2.5 py-1 text-xs"
                     >
                       Entfernen
                     </ConfirmDeleteButton>
@@ -84,13 +84,13 @@ export default async function TeamPage() {
                 {invites.map((invite) => (
                   <li
                     key={invite.id}
-                    className="card flex items-center justify-between px-4 py-3"
+                    className="card flex items-center justify-between gap-3 px-4 py-3"
                   >
-                    <p className="text-sm">{invite.email}</p>
+                    <p className="min-w-0 truncate text-sm">{invite.email}</p>
                     <ConfirmDeleteButton
                       action={cancelInvite.bind(null, invite.id)}
                       confirmMessage={`Einladung an ${invite.email} zurückziehen?`}
-                      className="btn-secondary px-2.5 py-1 text-xs"
+                      className="btn-secondary shrink-0 px-2.5 py-1 text-xs"
                     >
                       Zurückziehen
                     </ConfirmDeleteButton>

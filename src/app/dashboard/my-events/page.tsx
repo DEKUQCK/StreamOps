@@ -66,7 +66,7 @@ export default async function MyEventsPage() {
       ) : (
         <ul className="flex flex-col gap-3">
           {events.map((e) => (
-            <li key={e.eventParticipantId} className="card flex items-center justify-between gap-4 px-4 py-3.5">
+            <li key={e.eventParticipantId} className="card flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
               <Link href={`/dashboard/events/${e.eventId}`} className="min-w-0">
                 <p className="font-medium">{e.eventName}</p>
                 <p className="text-xs text-muted-foreground">
