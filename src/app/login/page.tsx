@@ -48,7 +48,7 @@ export default function LoginPage() {
 
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-24">
         <div className="card w-full max-w-sm p-6">
-          <h1 className="text-xl font-semibold">Veranstalter-Login</h1>
+          <h1 className="text-xl font-semibold">Anmelden</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Wir schicken dir einen Anmelde-Link per E-Mail, kein Passwort
             nötig.
@@ -64,7 +64,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                placeholder="du@agentur.de"
+                placeholder="du@beispiel.de"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="input"
