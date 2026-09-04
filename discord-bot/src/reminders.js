@@ -5,8 +5,8 @@ function formatDate(iso) {
   });
 }
 
-export function buildReminderMessage(reminder, portalBaseUrl) {
-  const portalUrl = `${portalBaseUrl}/portal/${reminder.magic_link_token}`;
+export function buildReminderMessage(reminder, appBaseUrl) {
+  const myEventsUrl = `${appBaseUrl}/dashboard/my-events`;
 
   if (reminder.reminder_type === "rsvp_pending") {
     const slotLine = reminder.slot_starts_at
@@ -15,7 +15,7 @@ export function buildReminderMessage(reminder, portalBaseUrl) {
     return (
       `Hey **${reminder.display_name}**! Bitte bestätige oder sage ab für ` +
       `**${reminder.event_name}**${slotLine}.\n` +
-      `Dein Info-Hub: ${portalUrl}`
+      `Melde dich an: ${myEventsUrl}`
     );
   }
 
@@ -26,7 +26,7 @@ export function buildReminderMessage(reminder, portalBaseUrl) {
     return (
       `Hey **${reminder.display_name}**! Nicht vergessen für ` +
       `**${reminder.event_name}**: ${reminder.description}${dueLine}.\n` +
-      `Hak's im Info-Hub ab: ${portalUrl}`
+      `Hak's ab: ${myEventsUrl}`
     );
   }
 
@@ -38,7 +38,7 @@ export function buildReminderMessage(reminder, portalBaseUrl) {
  * one at a time so a single failed DM (bot not sharing a server with that
  * user, DMs disabled, etc.) doesn't block the rest of the batch.
  */
-export async function processPendingReminders({ supabase, discordClient, botSecret, portalBaseUrl }) {
+export async function processPendingReminders({ supabase, discordClient, botSecret, appBaseUrl }) {
   const { data: reminders, error } = await supabase.rpc("bot_get_pending_reminders", {
     p_secret: botSecret,
   });
@@ -58,7 +58,7 @@ export async function processPendingReminders({ supabase, discordClient, botSecr
   for (const reminder of reminders) {
     try {
       const user = await discordClient.users.fetch(reminder.discord_user_id);
-      await user.send(buildReminderMessage(reminder, portalBaseUrl));
+      await user.send(buildReminderMessage(reminder, appBaseUrl));
 
       const { error: markError } = await supabase.rpc("bot_mark_reminder_sent", {
         p_secret: botSecret,

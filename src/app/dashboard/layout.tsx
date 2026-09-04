@@ -24,13 +24,9 @@ export default async function DashboardLayout({
     .eq("user_id", user.id)
     .limit(1);
 
-  if (!memberships || memberships.length === 0) {
-    // A conditional early-return here would not stop Next.js from still
-    // rendering/fetching the nested page (it resolves `children` before
-    // this layout's body runs), which crashed on the organization-required
-    // assumption in every dashboard page. redirect() properly aborts that.
-    redirect("/onboarding");
-  }
+  // No organization is a valid state now - a solo creator can organize
+  // their own events without ever joining or creating one.
+  const hasOrganization = Boolean(memberships && memberships.length > 0);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -47,10 +43,10 @@ export default async function DashboardLayout({
               Events
             </Link>
             <Link
-              href="/dashboard/roster"
+              href="/dashboard/my-events"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Streamer-Roster
+              Meine Events
             </Link>
             <Link
               href="/dashboard/calendar"
@@ -58,12 +54,21 @@ export default async function DashboardLayout({
             >
               Kalender
             </Link>
-            <Link
-              href="/dashboard/team"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Team
-            </Link>
+            {hasOrganization ? (
+              <Link
+                href="/dashboard/team"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Team
+              </Link>
+            ) : (
+              <Link
+                href="/onboarding"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Organisation gründen
+              </Link>
+            )}
             <span className="hidden text-muted-foreground sm:inline">
               {user.email}
             </span>

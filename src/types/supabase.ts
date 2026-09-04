@@ -88,13 +88,47 @@ export type Database = {
           },
         ]
       }
+      event_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          event_id: number
+          id: number
+          invited_by: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          event_id: number
+          id?: never
+          invited_by: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          event_id?: number
+          id?: never
+          invited_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participants: {
         Row: {
           created_at: string
           event_id: number
           id: number
-          magic_link_token: string
-          participant_id: number
+          participant_user_id: string
           rsvp_status: string
           slot_ends_at: string | null
           slot_starts_at: string | null
@@ -103,8 +137,7 @@ export type Database = {
           created_at?: string
           event_id: number
           id?: never
-          magic_link_token?: string
-          participant_id: number
+          participant_user_id: string
           rsvp_status?: string
           slot_ends_at?: string | null
           slot_starts_at?: string | null
@@ -113,8 +146,7 @@ export type Database = {
           created_at?: string
           event_id?: number
           id?: never
-          magic_link_token?: string
-          participant_id?: number
+          participant_user_id?: string
           rsvp_status?: string
           slot_ends_at?: string | null
           slot_starts_at?: string | null
@@ -128,10 +160,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "event_participants_participant_id_fkey"
-            columns: ["participant_id"]
+            foreignKeyName: "event_participants_participant_user_id_fkey"
+            columns: ["participant_user_id"]
             isOneToOne: false
-            referencedRelation: "participants"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -143,7 +175,8 @@ export type Database = {
           ends_at: string | null
           id: number
           name: string
-          organization_id: number
+          organization_id: number | null
+          organizer_user_id: string | null
           starts_at: string | null
           status: string
         }
@@ -153,7 +186,8 @@ export type Database = {
           ends_at?: string | null
           id?: never
           name: string
-          organization_id: number
+          organization_id?: number | null
+          organizer_user_id?: string | null
           starts_at?: string | null
           status?: string
         }
@@ -163,7 +197,8 @@ export type Database = {
           ends_at?: string | null
           id?: never
           name?: string
-          organization_id?: number
+          organization_id?: number | null
+          organizer_user_id?: string | null
           starts_at?: string | null
           status?: string
         }
@@ -259,46 +294,29 @@ export type Database = {
         }
         Relationships: []
       }
-      participants: {
+      profiles: {
         Row: {
           created_at: string
           discord_user_id: string | null
           display_name: string
-          email: string | null
-          id: number
-          organization_id: number
-          portal_token: string
+          id: string
           twitch_username: string | null
         }
         Insert: {
           created_at?: string
           discord_user_id?: string | null
           display_name: string
-          email?: string | null
-          id?: never
-          organization_id: number
-          portal_token?: string
+          id: string
           twitch_username?: string | null
         }
         Update: {
           created_at?: string
           discord_user_id?: string | null
           display_name?: string
-          email?: string | null
-          id?: never
-          organization_id?: number
-          portal_token?: string
+          id?: string
           twitch_username?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "participants_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reminder_log: {
         Row: {
@@ -379,6 +397,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_event_invite: {
+        Args: { p_invite_id: number }
+        Returns: number
+      }
       accept_organization_invite: {
         Args: { p_invite_id: number }
         Returns: number
@@ -393,21 +415,15 @@ export type Database = {
         }
         Returns: boolean
       }
-      complete_checklist_item: {
-        Args: { p_checklist_item_id: number; p_token: string }
-        Returns: boolean
-      }
       create_organization: { Args: { p_name: string }; Returns: number }
+      get_my_pending_event_invites: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_my_pending_invites: { Args: Record<PropertyKey, never>; Returns: Json }
       get_organization_members: {
         Args: { p_organization_id: number }
         Returns: Json
-      }
-      get_participant_calendar: { Args: { p_token: string }; Returns: Json }
-      get_participant_portal: { Args: { p_token: string }; Returns: Json }
-      set_rsvp_status: {
-        Args: { p_status: string; p_token: string }
-        Returns: boolean
       }
     }
     Enums: {

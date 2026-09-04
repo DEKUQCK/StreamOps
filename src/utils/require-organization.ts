@@ -3,17 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
 /**
- * Every dashboard page needs the caller's organization_id, and a user who
- * hasn't joined one yet (pending invite, brand new signup) must never see
- * a page built on the assumption that one exists - only .single() would
- * throw for that case, which surfaced as an unhandled 406 crash. Checking
- * the array ourselves and redirecting is what actually guards each page,
- * regardless of whatever the layout above it does.
+ * Not every user belongs to an organization - a solo creator organizing
+ * their own events is a fully valid state. Returns null rather than
+ * redirecting so callers can render a solo-friendly page instead of
+ * forcing everyone through org creation.
  */
-export async function requireOrganizationId(
+export async function getOrganizationId(
   supabase: SupabaseClient<Database>,
   user: { id: string } | null,
-): Promise<number> {
+): Promise<number | null> {
   if (!user) {
     redirect("/login");
   }
@@ -24,7 +22,19 @@ export async function requireOrganizationId(
     .eq("user_id", user.id)
     .limit(1);
 
-  const organizationId = data?.[0]?.organization_id;
+  return data?.[0]?.organization_id ?? null;
+}
+
+/**
+ * For pages that only make sense with an organization (e.g. team
+ * management) - checking the array ourselves and redirecting rather than
+ * using .single() is what guards this, since .single() 406s on 0 rows.
+ */
+export async function requireOrganizationId(
+  supabase: SupabaseClient<Database>,
+  user: { id: string } | null,
+): Promise<number> {
+  const organizationId = await getOrganizationId(supabase, user);
   if (organizationId == null) {
     redirect("/onboarding");
   }

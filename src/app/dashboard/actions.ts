@@ -24,18 +24,34 @@ export async function createOrganization(formData: FormData) {
   redirect("/dashboard");
 }
 
-export async function createEvent(organizationId: number, formData: FormData) {
+/**
+ * An event is organized by exactly one of: an organization the caller is a
+ * member of, or the caller themself (a solo creator). `organizer` carries
+ * that choice from the form as "self" or "org:<id>".
+ */
+export async function createEvent(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const startsAt = String(formData.get("starts_at") ?? "") || null;
   const endsAt = String(formData.get("ends_at") ?? "") || null;
+  const organizer = String(formData.get("organizer") ?? "self");
   if (!name) return;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Nicht angemeldet.");
+
+  const organizationId = organizer.startsWith("org:")
+    ? Number(organizer.slice(4))
+    : null;
+
   const { error } = await supabase.from("events").insert({
-    organization_id: organizationId,
     name,
     starts_at: startsAt,
     ends_at: endsAt,
+    organization_id: organizationId,
+    organizer_user_id: organizationId ? null : user.id,
   });
   if (error) throw new Error(error.message);
 
@@ -123,81 +139,53 @@ export async function deleteEvent(eventId: number) {
   redirect("/dashboard");
 }
 
-export async function addParticipantToRoster(
-  organizationId: number,
-  formData: FormData,
-) {
-  const displayName = String(formData.get("display_name") ?? "").trim();
-  const email = String(formData.get("email") ?? "") || null;
-  const twitchUsername = String(formData.get("twitch_username") ?? "") || null;
-  const discordUserId = String(formData.get("discord_user_id") ?? "") || null;
-  if (!displayName) return;
+/**
+ * Invite anyone by email to a specific event - they don't need to be in
+ * any roster or organization, and don't need an account yet. They'll get
+ * an event_invites row now and become an event_participants row once they
+ * sign in and accept it (see acceptEventInvite).
+ */
+export async function inviteToEvent(eventId: number, formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email) return;
 
   const supabase = await createClient();
-  const { error } = await supabase.from("participants").insert({
-    organization_id: organizationId,
-    display_name: displayName,
-    email,
-    twitch_username: twitchUsername,
-    discord_user_id: discordUserId,
-  });
-  if (error) throw new Error(error.message);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Nicht angemeldet.");
 
-  revalidatePath("/dashboard/roster");
-}
-
-export async function updateParticipant(participantId: number, formData: FormData) {
-  const displayName = String(formData.get("display_name") ?? "").trim();
-  const email = String(formData.get("email") ?? "") || null;
-  const twitchUsername = String(formData.get("twitch_username") ?? "") || null;
-  const discordUserId = String(formData.get("discord_user_id") ?? "") || null;
-  if (!displayName) return;
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("participants")
-    .update({
-      display_name: displayName,
-      email,
-      twitch_username: twitchUsername,
-      discord_user_id: discordUserId,
-    })
-    .eq("id", participantId);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/roster");
-}
-
-export async function deleteParticipant(participantId: number) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("participants")
-    .delete()
-    .eq("id", participantId);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/dashboard/roster");
-}
-
-export async function inviteParticipantToEvent(
-  eventId: number,
-  formData: FormData,
-) {
-  const participantId = Number(formData.get("participant_id"));
-  const slotStartsAt = String(formData.get("slot_starts_at") ?? "") || null;
-  const slotEndsAt = String(formData.get("slot_ends_at") ?? "") || null;
-  if (!participantId) return;
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("event_participants").insert({
+  const { error } = await supabase.from("event_invites").insert({
     event_id: eventId,
-    participant_id: participantId,
-    slot_starts_at: slotStartsAt,
-    slot_ends_at: slotEndsAt,
+    email,
+    invited_by: user.id,
   });
   if (error) throw new Error(error.message);
 
   revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+export async function cancelEventInvite(eventId: number, inviteId: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_invites")
+    .delete()
+    .eq("id", inviteId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+export async function acceptEventInvite(inviteId: number) {
+  const supabase = await createClient();
+  const { data: eventId, error } = await supabase.rpc("accept_event_invite", {
+    p_invite_id: inviteId,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/my-events");
+  if (eventId) redirect(`/dashboard/events/${eventId}`);
 }
 
 export async function updateEventParticipantSlot(
@@ -230,6 +218,27 @@ export async function removeEventParticipant(
   if (error) throw new Error(error.message);
 
   revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+/**
+ * A participant updates their own RSVP - allowed by
+ * event_participants_self_update_rsvp regardless of who organizes the
+ * event, since it's keyed on auth.uid() rather than an org role.
+ */
+export async function updateRsvpStatus(
+  eventId: number,
+  eventParticipantId: number,
+  status: "confirmed" | "declined",
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participants")
+    .update({ rsvp_status: status })
+    .eq("id", eventParticipantId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+  revalidatePath("/dashboard/my-events");
 }
 
 export async function addEventAsset(
@@ -297,4 +306,32 @@ export async function deleteChecklistItem(eventId: number, itemId: number) {
   if (error) throw new Error(error.message);
 
   revalidatePath(`/dashboard/events/${eventId}`);
+}
+
+/**
+ * A participant marks their own checklist status - RLS
+ * (checklist_status_self_all) scopes this to rows on their own
+ * event_participants row, same as an organizer marking it on their behalf.
+ */
+export async function setChecklistItemComplete(
+  eventId: number,
+  eventParticipantId: number,
+  checklistItemId: number,
+  completed: boolean,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("event_participant_checklist_status")
+    .upsert(
+      {
+        event_participant_id: eventParticipantId,
+        checklist_item_id: checklistItemId,
+        completed_at: completed ? new Date().toISOString() : null,
+      },
+      { onConflict: "event_participant_id,checklist_item_id" },
+    );
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/dashboard/events/${eventId}`);
+  revalidatePath("/dashboard/my-events");
 }

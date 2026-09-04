@@ -40,7 +40,7 @@ korrekte `BOT_SECRET` liefern beide Funktionen einen Fehler.
      `../.env.local` der Next.js-App
    - `BOT_SECRET` – das Secret, das beim Anlegen der Datenbank generiert
      wurde (nicht im Repo, wird separat weitergegeben)
-   - `PORTAL_BASE_URL` – die URL, unter der die StreamOps-App erreichbar
+   - `APP_BASE_URL` – die URL, unter der die StreamOps-App erreichbar
      ist (für lokale Tests `http://localhost:3000`)
 4. **Starten**:
    ```bash

@@ -41,7 +41,6 @@ export function ParticipantSlotCard({
   rsvpStatus,
   slotStartsAt,
   slotEndsAt,
-  portalUrl,
   assets,
   updateSlot,
   removeParticipant,
@@ -51,7 +50,6 @@ export function ParticipantSlotCard({
   rsvpStatus: string;
   slotStartsAt: string | null;
   slotEndsAt: string | null;
-  portalUrl: string;
   assets: Asset[];
   updateSlot: (formData: FormData) => Promise<void>;
   removeParticipant: () => Promise<void>;
@@ -121,10 +119,6 @@ export function ParticipantSlotCard({
           </button>
         </form>
       )}
-
-      <p className="mt-2 break-all text-xs text-muted-foreground">
-        Info-Hub-Link: {portalUrl}
-      </p>
 
       {/* Asset-Tresor */}
       <div className="mt-3 border-t border-border pt-3">

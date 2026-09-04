@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { requireOrganizationId } from "@/utils/require-organization";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import type { CalendarEvent } from "@/components/calendar/types";
 
@@ -8,30 +7,67 @@ export default async function DashboardCalendarPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  const organizationId = await requireOrganizationId(supabase, user);
+  const { data: memberships } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id);
+  const organizationIds = (memberships ?? []).map((m) => m.organization_id);
 
-  const { data: events } = await supabase
-    .from("events")
-    .select("id, name, status, starts_at, ends_at")
-    .eq("organization_id", organizationId);
+  const [{ data: organizedEvents }, { data: participations }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("id, name, starts_at, ends_at")
+      .or(
+        `organizer_user_id.eq.${user.id}${organizationIds.length > 0 ? `,organization_id.in.(${organizationIds.join(",")})` : ""}`,
+      ),
+    supabase
+      .from("event_participants")
+      .select("slot_starts_at, slot_ends_at, events(id, name, starts_at, ends_at)")
+      .eq("participant_user_id", user.id),
+  ]);
 
-  const calendarEvents: CalendarEvent[] = (events ?? [])
-    .filter((e) => e.starts_at)
-    .map((e) => ({
+  const byId = new Map<number, CalendarEvent>();
+
+  for (const e of organizedEvents ?? []) {
+    if (!e.starts_at) continue;
+    byId.set(e.id, {
       id: String(e.id),
       title: e.name,
-      start: new Date(e.starts_at as string),
+      start: new Date(e.starts_at),
       end: e.ends_at ? new Date(e.ends_at) : null,
       href: `/dashboard/events/${e.id}`,
-    }));
+    });
+  }
+
+  for (const p of participations ?? []) {
+    const event = (
+      p as unknown as {
+        events: { id: number; name: string; starts_at: string | null; ends_at: string | null } | null;
+      }
+    ).events;
+    if (!event) continue;
+    const start = p.slot_starts_at ?? event.starts_at;
+    if (!start || byId.has(event.id)) continue;
+    byId.set(event.id, {
+      id: String(event.id),
+      title: event.name,
+      start: new Date(start),
+      end: (p.slot_ends_at ?? event.ends_at) ? new Date((p.slot_ends_at ?? event.ends_at) as string) : null,
+      href: `/dashboard/events/${event.id}`,
+    });
+  }
+
+  const calendarEvents = Array.from(byId.values());
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Kalender</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Alle Events eurer Organisation im Überblick.
+          Alle Events im Überblick — die du veranstaltest oder an denen du
+          teilnimmst.
         </p>
       </div>
       <CalendarView events={calendarEvents} />

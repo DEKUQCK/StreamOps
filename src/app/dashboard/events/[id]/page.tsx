@@ -1,18 +1,27 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import {
   addEventAsset,
   addSponsorChecklistItem,
+  cancelEventInvite,
   deleteChecklistItem,
   deleteEvent,
   deleteEventAsset,
-  inviteParticipantToEvent,
+  inviteToEvent,
   removeEventParticipant,
+  setChecklistItemComplete,
   updateEvent,
   updateEventParticipantSlot,
+  updateRsvpStatus,
 } from "../../actions";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { EventHeaderEditor } from "./event-header-editor";
 import { ParticipantSlotCard } from "./participant-slot-card";
+import {
+  ParticipantEventView,
+  type ParticipantAsset,
+  type ParticipantChecklistItem,
+} from "./participant-event-view";
 
 export default async function EventDetailPage({
   params,
@@ -22,28 +31,44 @@ export default async function EventDetailPage({
   const { id } = await params;
   const eventId = Number(id);
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, name, description, status, starts_at, ends_at, organization_id")
+    .select(
+      "id, name, description, status, starts_at, ends_at, organization_id, organizer_user_id",
+    )
     .eq("id", eventId)
-    .single();
+    .maybeSingle();
 
   if (!event) {
     return <p className="text-sm text-danger">Event nicht gefunden.</p>;
   }
 
-  const [{ data: roster }, { data: eventParticipants }, { data: checklistItems }] =
+  let isOrganizer = event.organizer_user_id === user.id;
+  if (!isOrganizer && event.organization_id) {
+    const { data: membership } = await supabase
+      .from("organization_members")
+      .select("organization_id")
+      .eq("organization_id", event.organization_id)
+      .eq("user_id", user.id)
+      .limit(1);
+    isOrganizer = Boolean(membership && membership.length > 0);
+  }
+
+  if (!isOrganizer) {
+    return <ParticipantEventPage eventId={eventId} eventName={event.name} userId={user.id} />;
+  }
+
+  const [{ data: eventParticipants }, { data: checklistItems }, { data: invites }] =
     await Promise.all([
-      supabase
-        .from("participants")
-        .select("id, display_name")
-        .eq("organization_id", event.organization_id)
-        .order("display_name"),
       supabase
         .from("event_participants")
         .select(
-          "id, rsvp_status, slot_starts_at, slot_ends_at, magic_link_token, participant_id, participants(display_name), event_assets(id, asset_type, label, value, is_sensitive)",
+          "id, rsvp_status, slot_starts_at, slot_ends_at, participant_user_id, profiles(display_name), event_assets(id, asset_type, label, value, is_sensitive)",
         )
         .eq("event_id", eventId),
       supabase
@@ -53,16 +78,15 @@ export default async function EventDetailPage({
         )
         .eq("event_id", eventId)
         .order("due_at", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("event_invites")
+        .select("id, email, created_at")
+        .eq("event_id", eventId)
+        .is("accepted_at", null)
+        .order("created_at"),
     ]);
 
-  const invitedParticipantIds = new Set(
-    (eventParticipants ?? []).map((ep) => ep.participant_id),
-  );
-  const availableRoster = (roster ?? []).filter(
-    (p) => !invitedParticipantIds.has(p.id),
-  );
-
-  const inviteToEvent = inviteParticipantToEvent.bind(null, eventId);
+  const inviteToEventAction = inviteToEvent.bind(null, eventId);
   const addChecklistItem = addSponsorChecklistItem.bind(null, eventId);
   const updateEventAction = updateEvent.bind(null, eventId);
   const deleteEventAction = deleteEvent.bind(null, eventId);
@@ -86,17 +110,16 @@ export default async function EventDetailPage({
               </p>
             ) : (
               eventParticipants.map((ep) => {
-                const participant = (
-                  ep as unknown as { participants: { display_name: string } }
-                ).participants;
+                const profile = (
+                  ep as unknown as { profiles: { display_name: string } | null }
+                ).profiles;
                 return (
                   <ParticipantSlotCard
                     key={ep.id}
-                    displayName={participant.display_name}
+                    displayName={profile?.display_name ?? "Unbekannt"}
                     rsvpStatus={ep.rsvp_status}
                     slotStartsAt={ep.slot_starts_at}
                     slotEndsAt={ep.slot_ends_at}
-                    portalUrl={`/portal/${ep.magic_link_token}`}
                     assets={ep.event_assets.map((asset) => ({
                       ...asset,
                       deleteAction: deleteEventAsset.bind(null, eventId, asset.id),
@@ -111,40 +134,42 @@ export default async function EventDetailPage({
           </div>
 
           <div className="card p-4">
-            <h3 className="text-sm font-semibold">Streamer einladen</h3>
-            {availableRoster.length === 0 ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Alle Roster-Streamer sind bereits eingeladen.
-              </p>
-            ) : (
-              <form action={inviteToEvent} className="mt-3 flex flex-col gap-2">
-                <select name="participant_id" required className="input">
-                  {availableRoster.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.display_name}
-                    </option>
+            <h3 className="text-sm font-semibold">Per E-Mail einladen</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Funktioniert für jede:n Creator, egal ob mit oder ohne Account,
+              egal aus welcher Agentur.
+            </p>
+            <form action={inviteToEventAction} className="mt-3 flex flex-col gap-2">
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="creator@beispiel.de"
+                className="input"
+              />
+              <button type="submit" className="btn-primary mt-1">
+                Einladen
+              </button>
+            </form>
+
+            {invites && invites.length > 0 && (
+              <div className="mt-4 border-t border-border pt-3">
+                <p className="label-xs">Ausstehend</p>
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {invites.map((invite) => (
+                    <li key={invite.id} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate">{invite.email}</span>
+                      <ConfirmDeleteButton
+                        action={cancelEventInvite.bind(null, eventId, invite.id)}
+                        confirmMessage={`Einladung an ${invite.email} zurückziehen?`}
+                        className="shrink-0 text-xs text-danger hover:underline"
+                      >
+                        Zurückziehen
+                      </ConfirmDeleteButton>
+                    </li>
                   ))}
-                </select>
-                <label className="label-xs">
-                  Slot-Start
-                  <input
-                    type="datetime-local"
-                    name="slot_starts_at"
-                    className="input mt-1"
-                  />
-                </label>
-                <label className="label-xs">
-                  Slot-Ende
-                  <input
-                    type="datetime-local"
-                    name="slot_ends_at"
-                    className="input mt-1"
-                  />
-                </label>
-                <button type="submit" className="btn-primary mt-1">
-                  Einladen
-                </button>
-              </form>
+                </ul>
+              </div>
             )}
           </div>
         </div>
@@ -245,5 +270,82 @@ export default async function EventDetailPage({
         </div>
       </section>
     </div>
+  );
+}
+
+async function ParticipantEventPage({
+  eventId,
+  eventName,
+  userId,
+}: {
+  eventId: number;
+  eventName: string;
+  userId: string;
+}) {
+  const supabase = await createClient();
+
+  const { data: myParticipant } = await supabase
+    .from("event_participants")
+    .select(
+      "id, rsvp_status, slot_starts_at, slot_ends_at, event_assets(id, asset_type, label, value, is_sensitive)",
+    )
+    .eq("event_id", eventId)
+    .eq("participant_user_id", userId)
+    .maybeSingle();
+
+  if (!myParticipant) {
+    return <p className="text-sm text-danger">Kein Zugriff auf dieses Event.</p>;
+  }
+
+  const { data: checklistData } = await supabase
+    .from("sponsor_checklist_items")
+    .select(
+      "id, sponsor_name, description, due_at, event_participant_checklist_status(completed_at, event_participant_id)",
+    )
+    .eq("event_id", eventId)
+    .order("due_at", { ascending: true, nullsFirst: false });
+
+  const checklist: ParticipantChecklistItem[] = (checklistData ?? []).map((item) => {
+    const statuses = (
+      item as unknown as {
+        event_participant_checklist_status: {
+          event_participant_id: number;
+          completed_at: string | null;
+        }[];
+      }
+    ).event_participant_checklist_status;
+    const mine = statuses.find((s) => s.event_participant_id === myParticipant.id);
+    return {
+      id: item.id,
+      sponsor_name: item.sponsor_name,
+      description: item.description,
+      due_at: item.due_at,
+      completed_at: mine?.completed_at ?? null,
+    };
+  });
+
+  const assets: ParticipantAsset[] = myParticipant.event_assets;
+
+  async function updateRsvp(status: "confirmed" | "declined") {
+    "use server";
+    await updateRsvpStatus(eventId, myParticipant!.id, status);
+  }
+
+  async function toggleChecklistItem(checklistItemId: number, completed: boolean) {
+    "use server";
+    await setChecklistItemComplete(eventId, myParticipant!.id, checklistItemId, completed);
+  }
+
+  return (
+    <ParticipantEventView
+      eventName={eventName}
+      rsvpStatus={myParticipant.rsvp_status}
+      slotStartsAt={myParticipant.slot_starts_at}
+      slotEndsAt={myParticipant.slot_ends_at}
+      assets={assets}
+      checklist={checklist}
+      updateRsvp={updateRsvp}
+      setChecklistItemComplete={toggleChecklistItem}
+    />
   );
 }

@@ -8,7 +8,7 @@ const {
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
   BOT_SECRET,
-  PORTAL_BASE_URL = "http://localhost:3000",
+  APP_BASE_URL = "http://localhost:3000",
   POLL_INTERVAL_MINUTES = "15",
 } = process.env;
 
@@ -38,7 +38,7 @@ discordClient.once("clientReady", () => {
       supabase,
       discordClient,
       botSecret: BOT_SECRET,
-      portalBaseUrl: PORTAL_BASE_URL,
+      appBaseUrl: APP_BASE_URL,
     }).catch((err) => console.error("Reminder check failed:", err));
 
   tick();
