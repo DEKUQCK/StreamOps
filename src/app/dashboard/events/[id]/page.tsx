@@ -46,7 +46,11 @@ export default async function EventDetailPage({
     .maybeSingle();
 
   if (!event) {
-    return <p className="text-sm text-danger">Event nicht gefunden.</p>;
+    return (
+      <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-danger">
+        Event nicht gefunden.
+      </p>
+    );
   }
 
   let isOrganizer = event.organizer_user_id === user.id;
@@ -132,7 +136,7 @@ export default async function EventDetailPage({
               {broadcasts.map((b) => (
                 <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate text-muted-foreground">{b.message}</span>
-                  <span className="badge shrink-0">
+                  <span className={`badge shrink-0 ${b.sent_at ? "badge-success" : ""}`}>
                     {b.sent_at ? "Gesendet" : "Wird gesendet …"}
                   </span>
                 </li>
@@ -339,7 +343,11 @@ async function ParticipantEventPage({
     .maybeSingle();
 
   if (!myParticipant) {
-    return <p className="text-sm text-danger">Kein Zugriff auf dieses Event.</p>;
+    return (
+      <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-danger">
+        Kein Zugriff auf dieses Event.
+      </p>
+    );
   }
 
   const { data: checklistData } = await supabase

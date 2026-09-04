@@ -151,7 +151,9 @@ export function ParticipantEventView({
         <h2 className="text-sm font-semibold">Sponsoren-Checkliste</h2>
         <div className="mt-3 flex flex-col gap-2">
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Keine Vorgaben.</p>
+            <p className="text-sm text-muted-foreground">
+              Noch keine Sponsoren-Vorgaben.
+            </p>
           ) : (
             items.map((item) => (
               <label

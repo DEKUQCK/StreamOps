@@ -10,6 +10,11 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Abgesagt",
 };
 
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  live: "badge-success",
+  cancelled: "badge-danger",
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -120,7 +125,7 @@ export default async function DashboardPage() {
                           : "Termin offen"}
                       </p>
                     </div>
-                    <span className="badge">
+                    <span className={`badge ${STATUS_BADGE_CLASS[event.status] ?? ""}`}>
                       {STATUS_LABELS[event.status] ?? event.status}
                     </span>
                   </Link>

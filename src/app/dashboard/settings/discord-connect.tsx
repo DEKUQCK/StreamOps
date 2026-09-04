@@ -64,7 +64,9 @@ export function DiscordConnect({
       </p>
       {connected ? (
         <div className="mt-3 flex items-center justify-between gap-3">
-          <span className="badge">Verbunden{discordLabel ? ` als ${discordLabel}` : ""}</span>
+          <span className="badge badge-success">
+            Verbunden{discordLabel ? ` als ${discordLabel}` : ""}
+          </span>
           <button disabled={pending} onClick={disconnect} className="btn-secondary px-2.5 py-1 text-xs">
             Trennen
           </button>

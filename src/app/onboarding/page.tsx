@@ -63,11 +63,11 @@ export default async function OnboardingPage() {
         )}
 
         <div className="card w-full max-w-sm p-6">
-          <h1 className="text-xl font-semibold">
-            {pendingInvites.length > 0
-              ? "Oder eigene Organisation anlegen"
-              : "Willkommen bei StreamOps"}
-          </h1>
+          {pendingInvites.length > 0 ? (
+            <h2 className="text-xl font-semibold">Oder eigene Organisation anlegen</h2>
+          ) : (
+            <h1 className="text-xl font-semibold">Willkommen bei StreamOps</h1>
+          )}
           <p className="mt-1.5 text-sm text-muted-foreground">
             Lege eure Agentur/Organisation an, um Events zu verwalten.
           </p>

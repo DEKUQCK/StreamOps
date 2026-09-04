@@ -101,6 +101,14 @@ body {
     @apply inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground;
   }
 
+  .badge-success {
+    @apply bg-success-bg text-success;
+  }
+
+  .badge-danger {
+    @apply bg-danger-bg text-danger;
+  }
+
   .label-xs {
     @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
   }

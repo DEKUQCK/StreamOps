@@ -20,6 +20,12 @@ const RSVP_LABELS: Record<string, string> = {
   cancelled: "Storniert",
 };
 
+const RSVP_BADGE_CLASS: Record<string, string> = {
+  confirmed: "badge-success",
+  declined: "badge-danger",
+  cancelled: "badge-danger",
+};
+
 function toDatetimeLocalValue(iso: string | null) {
   if (!iso) return "";
   const date = new Date(iso);
@@ -71,7 +77,9 @@ export function ParticipantSlotCard({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="badge">{RSVP_LABELS[rsvpStatus] ?? rsvpStatus}</span>
+          <span className={`badge ${RSVP_BADGE_CLASS[rsvpStatus] ?? ""}`}>
+            {RSVP_LABELS[rsvpStatus] ?? rsvpStatus}
+          </span>
           <button
             onClick={() => setEditingSlot((v) => !v)}
             className="btn-secondary px-2.5 py-1 text-xs"
@@ -126,6 +134,11 @@ export function ParticipantSlotCard({
         <p className="mt-0.5 text-xs text-muted-foreground">
           Sensible Einträge werden 24h nach Event-Ende automatisch gelöscht.
         </p>
+        {assets.length === 0 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Noch keine Assets hinterlegt.
+          </p>
+        )}
         <ul className="mt-2 flex flex-col gap-1">
           {assets.map((asset) => (
             <li key={asset.id} className="flex items-center justify-between gap-2 text-sm">
