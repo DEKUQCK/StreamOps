@@ -112,50 +112,6 @@ export default async function EventDetailPage({
         deleteEvent={deleteEventAction}
       />
 
-      {/* Sofort-Broadcast */}
-      <section>
-        <h2 className="text-lg font-semibold">Sofort-Broadcast</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Dringende Änderung? Schick allen Teilnehmer:innen sofort eine
-          Discord-DM (z. B. bei einem kurzfristigen Server-IP-Wechsel) —
-          unabhängig von den geplanten Erinnerungen.
-        </p>
-        <div className="card mt-3 border-warning-foreground/40 bg-warning-foreground/5 p-4">
-          <p className="text-xs font-medium text-warning-foreground">
-            ⚠️ Wird sofort verschickt und kann danach nicht mehr zurückgeholt
-            werden.
-          </p>
-          <ConfirmSubmitForm
-            action={sendBroadcastAction}
-            confirmMessage="Diese Nachricht jetzt an alle Teilnehmer:innen senden?"
-            confirmFieldName="message"
-            className="mt-2 flex flex-col gap-2 sm:flex-row"
-          >
-            <input
-              name="message"
-              required
-              placeholder="z. B. Server-IP hat sich geändert: 1.2.3.4"
-              className="input flex-1"
-            />
-            <button type="submit" className="btn-primary shrink-0">
-              Sofort senden
-            </button>
-          </ConfirmSubmitForm>
-          {broadcasts && broadcasts.length > 0 && (
-            <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
-              {broadcasts.map((b) => (
-                <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate text-muted-foreground">{b.message}</span>
-                  <span className={`badge shrink-0 ${b.sent_at ? "badge-success" : ""}`}>
-                    {b.sent_at ? "Gesendet" : "Wird gesendet …"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
       {/* Kalender & Slot-Buchung */}
       <section>
         <h2 className="text-lg font-semibold">Teilnehmer &amp; Slots</h2>
@@ -328,6 +284,67 @@ export default async function EventDetailPage({
           </div>
         </div>
       </section>
+
+      {/* Sofort-Broadcast */}
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
+          >
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+          Sofort-Broadcast
+          <span className="text-sm font-normal text-muted-foreground">
+            (dringende Nachricht an alle)
+          </span>
+        </summary>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Dringende Änderung? Schick allen Teilnehmer:innen sofort eine
+          Discord-DM (z. B. bei einem kurzfristigen Server-IP-Wechsel) —
+          unabhängig von den geplanten Erinnerungen.
+        </p>
+        <div className="card mt-3 border-warning-foreground/40 bg-warning-foreground/5 p-4">
+          <p className="text-xs font-medium text-warning-foreground">
+            ⚠️ Wird sofort verschickt und kann danach nicht mehr zurückgeholt
+            werden.
+          </p>
+          <ConfirmSubmitForm
+            action={sendBroadcastAction}
+            confirmMessage="Diese Nachricht jetzt an alle Teilnehmer:innen senden?"
+            confirmFieldName="message"
+            className="mt-2 flex flex-col gap-2 sm:flex-row"
+          >
+            <input
+              name="message"
+              required
+              placeholder="z. B. Server-IP hat sich geändert: 1.2.3.4"
+              className="input flex-1"
+            />
+            <button type="submit" className="btn-primary shrink-0">
+              Sofort senden
+            </button>
+          </ConfirmSubmitForm>
+          {broadcasts && broadcasts.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+              {broadcasts.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate text-muted-foreground">{b.message}</span>
+                  <span className={`badge shrink-0 ${b.sent_at ? "badge-success" : ""}`}>
+                    {b.sent_at ? "Gesendet" : "Wird gesendet …"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
     </div>
   );
 }
