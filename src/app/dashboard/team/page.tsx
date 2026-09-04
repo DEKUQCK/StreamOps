@@ -104,8 +104,8 @@ export default async function TeamPage() {
         <div className="card p-4">
           <h2 className="text-sm font-semibold">Kollegen einladen</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Die Person muss sich anschließend mit genau dieser E-Mail-Adresse
-            bei StreamOps anmelden, um automatisch beizutreten.
+            Die Person bekommt sofort eine Login-Mail, die gleichzeitig als
+            Einladung dient - nach dem Anmelden tritt sie automatisch bei.
           </p>
           <form action={inviteTeamMemberWithOrg} className="mt-3 flex flex-col gap-2">
             <input

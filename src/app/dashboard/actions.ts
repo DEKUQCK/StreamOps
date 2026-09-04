@@ -95,6 +95,14 @@ export async function inviteTeamMember(organizationId: number, formData: FormDat
   });
   if (error) throw new Error(error.message);
 
+  // Best-effort, same reasoning as inviteToEvent: without this, the
+  // colleague only finds out by happening to log in themselves.
+  const origin = await getOrigin();
+  await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
+  });
+
   revalidatePath("/dashboard/team");
 }
 
