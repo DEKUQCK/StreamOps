@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 async function getOrigin() {
@@ -96,12 +97,16 @@ export async function inviteTeamMember(organizationId: number, formData: FormDat
   if (error) throw new Error(error.message);
 
   // Best-effort, same reasoning as inviteToEvent: without this, the
-  // colleague only finds out by happening to log in themselves.
+  // colleague only finds out by happening to log in themselves. Sent via
+  // after() so the actual email round-trip doesn't hold up this action -
+  // the invite row is already saved by the time the page reacts.
   const origin = await getOrigin();
-  await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
-  });
+  after(() =>
+    supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
+    }),
+  );
 
   revalidatePath("/dashboard/team");
 }
@@ -210,12 +215,16 @@ export async function inviteToEvent(eventId: number, formData: FormData) {
   // Best-effort: this doubles as both the "you've been invited" notice and
   // a login link, so the invitee actually finds out - without it they'd
   // only learn about the invite by happening to log in themselves, or (at
-  // the earliest) from the Discord reminder 48h before their slot.
+  // the earliest) from the Discord reminder 48h before their slot. Sent via
+  // after() so the email round-trip doesn't hold up this action - the
+  // invite row is already saved by the time the page reacts.
   const origin = await getOrigin();
-  await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
-  });
+  after(() =>
+    supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` },
+    }),
+  );
 
   revalidatePath(`/dashboard/events/${eventId}`);
 }
