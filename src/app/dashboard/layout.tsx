@@ -69,6 +69,12 @@ export default async function DashboardLayout({
                 Organisation gründen
               </Link>
             )}
+            <Link
+              href="/dashboard/settings"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Profil
+            </Link>
             <span className="hidden text-muted-foreground sm:inline">
               {user.email}
             </span>
