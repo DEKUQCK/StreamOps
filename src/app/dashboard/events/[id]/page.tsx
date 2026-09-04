@@ -137,7 +137,10 @@ export default async function EventDetailPage({
             <h3 className="text-sm font-semibold">Per E-Mail einladen</h3>
             <p className="mt-1 text-xs text-muted-foreground">
               Funktioniert für jede:n Creator, egal ob mit oder ohne Account,
-              egal aus welcher Agentur.
+              egal aus welcher Agentur. Es wird keine automatische Mail
+              verschickt — die Person muss sich einfach mit genau dieser
+              E-Mail-Adresse anmelden, dann taucht die Einladung automatisch
+              in ihrem Dashboard auf.
             </p>
             <form action={inviteToEventAction} className="mt-3 flex flex-col gap-2">
               <input
