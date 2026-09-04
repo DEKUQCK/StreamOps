@@ -30,6 +30,11 @@ const FEATURES = [
     description:
       "Sensible Zugangsdaten sind hinter deinem Login versteckt, leaken nicht im Stream und werden nach dem Event automatisch gelöscht.",
   },
+  {
+    title: "Sofort-Broadcast",
+    description:
+      "Kurzfristige Server-IP geändert? Eine dringende Nachricht per Discord-DM an alle Teilnehmer:innen, in Sekunden statt beim nächsten Reminder.",
+  },
 ];
 
 export default async function Home() {
@@ -72,10 +77,14 @@ export default async function Home() {
             jeder Agentur ein, alles an einem Ort statt verteilt über
             Discord, Excel und WhatsApp.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col items-center gap-3">
             <Link href="/login" className="btn-primary">
               Jetzt loslegen
             </Link>
+            <p className="text-xs text-muted-foreground">
+              Kein Passwort, keine Installation – anmelden per Magic-Link und
+              das erste Event in wenigen Minuten startklar.
+            </p>
           </div>
         </div>
 
